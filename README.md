@@ -19,7 +19,7 @@ end
 
 subgraph Datalake
 direction LR
-DB1[(Viewcare Anvendelsesdata)]
+DB1[(Viewcare \n Anvendelsesdata)]
 end
 
 
@@ -29,8 +29,8 @@ subgraph Præsentationslag
         end
 end
 
-Datakilder-->datakilde-forbindelse 
-DM-->Datalake<-->Præsentationslag
+Datakilder--CSV-->datakilde-forbindelse 
+DM-->Datalake-->Præsentationslag
     
 ```
 ### Beskrivelse
