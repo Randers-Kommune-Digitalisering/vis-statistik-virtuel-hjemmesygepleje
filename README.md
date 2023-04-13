@@ -1,4 +1,4 @@
-# :chart: Visning statistik på anvendelsen af virtuel hjemmesygepleje
+# 📊 Visning statistik på anvendelsen af virtuel hjemmesygepleje
 
 ```mermaid
 
