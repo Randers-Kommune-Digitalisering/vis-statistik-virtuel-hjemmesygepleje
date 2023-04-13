@@ -48,7 +48,7 @@ Krav til installerede software pakker
 
 Krav til netværksadgange til datakilder
 
-:cloud: | https://api.statbank.dk | https://admin.opendata.dk/ |
+:cloud: | sftp viewcare
 
 Krav til anvendelse af miljøvariable:
 
