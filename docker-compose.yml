@@ -8,6 +8,7 @@ services:
       - "1880:1880"
     environment:
       #GIT_BRANCH: ${GIT_BRANCH}
+      VIEWCARE_SFTP_URL: ${VIEWCARE_SFTP_URL}
       DB_USER: root
       DB_PASS: pass
       DB_HOST: db

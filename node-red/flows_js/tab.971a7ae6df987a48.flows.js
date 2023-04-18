@@ -4,13 +4,6 @@ const Node = {
   "label": "Flow 1",
   "disabled": false,
   "info": "",
-  "env": [
-    {
-      "name": "VIEWCARE_SFTP_URL",
-      "value": "jitterbit.viewcare.com",
-      "type": "str"
-    }
-  ],
   "_order": 0
 }
 
