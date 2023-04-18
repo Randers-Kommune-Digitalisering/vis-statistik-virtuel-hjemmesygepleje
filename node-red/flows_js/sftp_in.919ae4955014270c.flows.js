@@ -2,6 +2,7 @@ const Node = {
   "id": "919ae4955014270c",
   "type": "sftp in",
   "z": "971a7ae6df987a48",
+  "g": "e183203bdc1f7193",
   "sftp": "40cbd8d7867f6d53",
   "operation": "get",
   "filename": "",
@@ -11,14 +12,14 @@ const Node = {
   "workdir": "Randers",
   "savedir": "",
   "name": "",
-  "x": 350,
-  "y": 680,
+  "x": 310,
+  "y": 720,
   "wires": [
     [
-      "c31471d44a880896"
+      "e719aa5190a0d6be"
     ]
   ],
-  "_order": 49
+  "_order": 50
 }
 
 module.exports = Node;
