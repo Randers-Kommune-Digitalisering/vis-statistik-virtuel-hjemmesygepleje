@@ -7,7 +7,10 @@ services:
     ports:
       - "1880:1880"
     environment:
-      #GIT_BRANCH: ${GIT_BRANCH}
+      # Mapning af GitHub CodeSpace secrets ind i node-red containeren
+      VIEWCARE_SFTP_URL: ${VIEWCARE_SFTP_URL}
+      VIEWCARE_SFTP_USER: ${VIEWCARE_SFTP_USER}
+      VIEWCARE_SFTP_PASS: ${VIEWCARE_SFTP_PASS}
       DB_USER: root
       DB_PASS: pass
       DB_HOST: db
