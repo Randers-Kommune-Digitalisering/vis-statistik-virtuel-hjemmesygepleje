@@ -29,6 +29,7 @@
         }
     ],
     "dependencies": {
+        "@yousolution/node-red-contrib-you-ftp-sftp": "~1.9.2",
         "node-red": "3.0.2",
         "node-red-contrib-cron-plus": "~1.5.7",
         "node-red-contrib-js-storage": "1.0.2",

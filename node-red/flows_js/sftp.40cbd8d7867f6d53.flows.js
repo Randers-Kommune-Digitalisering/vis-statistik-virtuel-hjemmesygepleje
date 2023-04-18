@@ -1,10 +1,10 @@
 const Node = {
-  "id": "87f2bd82a4fb7546",
+  "id": "40cbd8d7867f6d53",
   "type": "sftp",
   "host": "",
   "port": "22",
-  "username": "test",
-  "password": "test",
+  "username": "",
+  "password": "",
   "hmac": [],
   "cipher": [],
   "_order": 20
