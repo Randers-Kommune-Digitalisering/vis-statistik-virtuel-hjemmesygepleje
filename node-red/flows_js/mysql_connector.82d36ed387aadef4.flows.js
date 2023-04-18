@@ -1,19 +1,19 @@
 const Node = {
-  "id": "aee5892dbbe3d82b",
+  "id": "82d36ed387aadef4",
   "type": "MySQL-Connector",
-  "z": "5f815c7f5707ec58",
-  "g": "775f1511bb6470f8",
+  "z": "73a083b915d39e25",
+  "g": "aa492d6b49c5d8ca",
   "server": "8dd94efcd0784de3",
   "name": "Send forespørgsel",
   "x": 310,
   "y": 100,
   "wires": [
     [
-      "321ce2c6e7eb1091",
-      "5da16564b7f0f0c1"
+      "1f434ca25a021a8e",
+      "bfc3f7a90bf3a4fd"
     ]
   ],
-  "_order": 20
+  "_order": 25
 }
 
 module.exports = Node;
