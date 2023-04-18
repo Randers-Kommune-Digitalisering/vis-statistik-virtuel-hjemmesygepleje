@@ -52,7 +52,7 @@ Krav til netværksadgange til datakilder
 
 Krav til anvendelse af miljøvariable:
 
-:heavy_dollar_sign: | DB_USER | DB_PASS | DB_HOST | DB_DATABASE | VIEWCARE_SFTP_USER | VIEWCARE_SFTP_PASS |
+:heavy_dollar_sign: | DB_USER | DB_PASS | DB_HOST | DB_DATABASE | VIEWCARE_SFTP_URL |VIEWCARE_SFTP_USER | VIEWCARE_SFTP_PASS |
 
 ### Ressourcer
 
