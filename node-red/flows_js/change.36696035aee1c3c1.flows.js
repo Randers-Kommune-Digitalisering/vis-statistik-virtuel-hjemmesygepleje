@@ -1,16 +1,15 @@
 const Node = {
-  "id": "0d69f3fa27c5e44c",
+  "id": "36696035aee1c3c1",
   "type": "change",
   "z": "971a7ae6df987a48",
-  "g": "5b803f1c3bcb0822",
-  "name": "Hent id på seneste fil",
+  "name": "",
   "rules": [
     {
       "t": "set",
-      "p": "package_id",
+      "p": "payload",
       "pt": "msg",
-      "to": "payload.result.resources[0].id",
-      "tot": "msg"
+      "to": "$keys(payload) @$key . {\t    \"key\": $key,\t    \"header\": payload[0]\t}",
+      "tot": "jsonata"
     }
   ],
   "action": "",
@@ -18,12 +17,12 @@ const Node = {
   "from": "",
   "to": "",
   "reg": false,
-  "x": 1740,
-  "y": 300,
+  "x": 880,
+  "y": 1040,
   "wires": [
     []
   ],
-  "_order": 36
+  "_order": 56
 }
 
 module.exports = Node;
