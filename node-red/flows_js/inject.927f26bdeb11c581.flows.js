@@ -10,8 +10,32 @@ const Node = {
       "vt": "env"
     },
     {
-      "p": "topic",
+      "p": "user",
+      "v": "VIEWCARE_SFTP_USER",
+      "vt": "env"
+    },
+    {
+      "p": "password",
+      "v": "VIEWCARE_SFTP_PASS",
+      "vt": "env"
+    },
+    {
+      "p": "workdir",
+      "v": "Randers",
       "vt": "str"
+    },
+    {
+      "p": "payload"
+    },
+    {
+      "p": "payload.filename",
+      "v": "randers2020eksempel.xlsx",
+      "vt": "str"
+    },
+    {
+      "p": "payload.filename",
+      "v": "workdir & \"/\" & payload.filename",
+      "vt": "jsonata"
     }
   ],
   "repeat": "",
@@ -19,11 +43,13 @@ const Node = {
   "once": false,
   "onceDelay": 0.1,
   "topic": "",
+  "payload": "{}",
+  "payloadType": "json",
   "x": 170,
   "y": 680,
   "wires": [
     [
-      "b09404bfde5f1ac5"
+      "919ae4955014270c"
     ]
   ],
   "_order": 37
