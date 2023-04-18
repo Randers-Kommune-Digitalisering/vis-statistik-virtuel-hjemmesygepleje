@@ -12,13 +12,13 @@ const Node = {
   "savedir": "",
   "name": "",
   "x": 360,
-  "y": 660,
+  "y": 480,
   "wires": [
     [
       "c31471d44a880896"
     ]
   ],
-  "_order": 38
+  "_order": 41
 }
 
 module.exports = Node;

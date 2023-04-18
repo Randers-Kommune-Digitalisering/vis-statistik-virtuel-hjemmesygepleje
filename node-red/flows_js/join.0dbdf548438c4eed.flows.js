@@ -1,8 +1,8 @@
 const Node = {
-  "id": "689466cb9c2087e3",
+  "id": "0dbdf548438c4eed",
   "type": "join",
   "z": "971a7ae6df987a48",
-  "g": "43dc5f7a23936f1d",
+  "g": "eeea7645cd4f2c0d",
   "name": "",
   "mode": "auto",
   "build": "object",
@@ -19,15 +19,15 @@ const Node = {
   "reduceInit": "",
   "reduceInitType": "",
   "reduceFixup": "",
-  "x": 745,
-  "y": 1140,
+  "x": 705,
+  "y": 680,
   "wires": [
     [
-      "7c0ab6f95710bc73"
+      "fb75e8a30d0a6b6b"
     ]
   ],
   "l": false,
-  "_order": 52
+  "_order": 55
 }
 
 module.exports = Node;

@@ -1,8 +1,8 @@
 const Node = {
-  "id": "d7b5f85214b2a827",
+  "id": "374af7cd3fe2e519",
   "type": "template",
   "z": "971a7ae6df987a48",
-  "g": "43dc5f7a23936f1d",
+  "g": "eeea7645cd4f2c0d",
   "name": "Forespørgsel ↓\\n Indsæt eller opdater \\n data i tabel",
   "field": "topic",
   "fieldType": "msg",
@@ -10,25 +10,28 @@ const Node = {
   "syntax": "mustache",
   "template": "",
   "output": "str",
-  "x": 320,
-  "y": 1140,
+  "x": 220,
+  "y": 680,
   "wires": [
     [
-      "e7203cc4056ebbb4"
+      "8d36afbf75141029"
     ]
   ],
-  "_order": 50
+  "_order": 56
 }
 
 Node.template = `
 INSERT INTO {{flow.tablename}} 
-    (Month,	stat1, stat2)
+    (Måned, Biltype, Drivmiddel, Anvendelse, Antal)
 VALUES( 
-        '{{{data.stat1}}}',
-        '{{{data.stat2}}}'
+        '{{{data.maaned}}}',
+        '{{{data.BILTYPE}}}',
+        '{{{data.DRIV}}}',
+        '{{{data.BRUG}}}',
+        '{{{data.INDHOLD}}}'
         )
 ON DUPLICATE KEY UPDATE
-    stat1 = '{{data.stat1}}'
+    Antal = '{{{data.INDHOLD}}}'
 `
 
 module.exports = Node;
