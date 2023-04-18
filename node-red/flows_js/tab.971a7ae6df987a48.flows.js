@@ -6,8 +6,8 @@ const Node = {
   "info": "",
   "env": [
     {
-      "name": "$VIEWCARE_SFTP_URL",
-      "value": "jitterbug.viewcare.com",
+      "name": "VIEWCARE_SFTP_URL",
+      "value": "jitterbit.viewcare.com",
       "type": "str"
     }
   ],
