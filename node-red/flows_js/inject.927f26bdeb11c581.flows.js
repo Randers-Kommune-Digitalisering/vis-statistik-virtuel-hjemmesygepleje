@@ -30,7 +30,7 @@ const Node = {
     },
     {
       "p": "payload.filename",
-      "v": "randers2020eksempel.xlsx",
+      "v": "randersall.csv",
       "vt": "str"
     },
     {
@@ -46,14 +46,14 @@ const Node = {
   "topic": "",
   "payload": "{}",
   "payloadType": "json",
-  "x": 170,
-  "y": 780,
+  "x": 1230,
+  "y": 720,
   "wires": [
     [
       "919ae4955014270c"
     ]
   ],
-  "_order": 39
+  "_order": 49
 }
 
 module.exports = Node;

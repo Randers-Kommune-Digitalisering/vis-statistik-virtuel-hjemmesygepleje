@@ -2,7 +2,7 @@ const Node = {
   "id": "e183203bdc1f7193",
   "type": "group",
   "z": "971a7ae6df987a48",
-  "name": "SFTP: Get test data file",
+  "name": "SFTP TEST: Get data file",
   "style": {
     "fill": "#ffbfbf",
     "fill-opacity": "0.39",
@@ -15,8 +15,8 @@ const Node = {
     "919ae4955014270c",
     "e719aa5190a0d6be"
   ],
-  "x": 74,
-  "y": 739,
+  "x": 1134,
+  "y": 679,
   "w": 792,
   "h": 82,
   "_order": 9

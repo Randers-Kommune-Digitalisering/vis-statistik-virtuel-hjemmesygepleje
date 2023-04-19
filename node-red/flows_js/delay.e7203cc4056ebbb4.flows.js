@@ -17,12 +17,12 @@ const Node = {
   "allowrate": false,
   "outputs": 1,
   "x": 475,
-  "y": 1340,
+  "y": 1440,
   "wires": [
     []
   ],
   "l": false,
-  "_order": 49
+  "_order": 59
 }
 
 module.exports = Node;
