@@ -1,17 +1,17 @@
 const Node = {
-  "id": "89afaa55ba074b5d",
+  "id": "8f7637fe64c62a0d",
   "type": "subflow:5f815c7f5707ec58",
   "z": "971a7ae6df987a48",
-  "g": "dd6ff76fb5bcc3de",
+  "g": "eeea7645cd4f2c0d",
   "name": "Send forespørgsel \\n til database",
-  "x": 1620,
-  "y": 1000,
+  "x": 550,
+  "y": 680,
   "wires": [
     [
-      "ce7a93c19af1c70d"
+      "0dbdf548438c4eed"
     ]
   ],
-  "_order": 42
+  "_order": 57
 }
 
 module.exports = Node;

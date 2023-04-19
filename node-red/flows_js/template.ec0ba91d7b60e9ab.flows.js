@@ -2,6 +2,7 @@ const Node = {
   "id": "ec0ba91d7b60e9ab",
   "type": "template",
   "z": "971a7ae6df987a48",
+  "g": "dd6ff76fb5bcc3de",
   "name": "Query",
   "field": "topic",
   "fieldType": "msg",
