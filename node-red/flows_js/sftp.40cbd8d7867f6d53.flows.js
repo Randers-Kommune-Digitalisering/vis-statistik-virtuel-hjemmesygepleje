@@ -3,11 +3,11 @@ const Node = {
   "type": "sftp",
   "host": "",
   "port": "22",
-  "username": "",
-  "password": "",
+  "username": "null",
+  "password": "null",
   "hmac": [],
   "cipher": [],
-  "_order": 20
+  "_order": 21
 }
 
 module.exports = Node;

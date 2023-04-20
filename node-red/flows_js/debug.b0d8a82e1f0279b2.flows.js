@@ -1,20 +1,21 @@
 const Node = {
-  "id": "ce7a93c19af1c70d",
+  "id": "b0d8a82e1f0279b2",
   "type": "debug",
   "z": "971a7ae6df987a48",
-  "g": "dd6ff76fb5bcc3de",
-  "name": "debug 29",
-  "active": true,
+  "g": "db20f1c3d096597b",
+  "name": "SFTP response 2",
+  "active": false,
   "tosidebar": true,
   "console": false,
   "tostatus": false,
-  "complete": "false",
+  "complete": "payload",
+  "targetType": "msg",
   "statusVal": "",
   "statusType": "auto",
-  "x": 700,
-  "y": 840,
+  "x": 770,
+  "y": 620,
   "wires": [],
-  "_order": 45
+  "_order": 50
 }
 
 module.exports = Node;

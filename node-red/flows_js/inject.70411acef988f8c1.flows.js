@@ -1,7 +1,8 @@
 const Node = {
-  "id": "927f26bdeb11c581",
+  "id": "70411acef988f8c1",
   "type": "inject",
   "z": "971a7ae6df987a48",
+  "g": "5c29b0234ffc82a9",
   "name": "",
   "props": [
     {
@@ -26,16 +27,6 @@ const Node = {
     },
     {
       "p": "payload"
-    },
-    {
-      "p": "payload.filename",
-      "v": "randers2020eksempel.xlsx",
-      "vt": "str"
-    },
-    {
-      "p": "payload.filename",
-      "v": "workdir & \"/\" & payload.filename",
-      "vt": "jsonata"
     }
   ],
   "repeat": "",
@@ -45,14 +36,14 @@ const Node = {
   "topic": "",
   "payload": "{}",
   "payloadType": "json",
-  "x": 170,
-  "y": 500,
+  "x": 150,
+  "y": 380,
   "wires": [
     [
-      "919ae4955014270c"
+      "40a6cbf939d3a282"
     ]
   ],
-  "_order": 40
+  "_order": 42
 }
 
 module.exports = Node;
