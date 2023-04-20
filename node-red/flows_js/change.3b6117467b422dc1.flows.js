@@ -24,6 +24,14 @@ const Node = {
       "t": "delete",
       "p": "workdir",
       "pt": "msg"
+    },
+    {
+      "t": "set",
+      "p": "payload",
+      "pt": "msg",
+      "to": "payload.filedata",
+      "tot": "msg",
+      "dc": true
     }
   ],
   "action": "",
@@ -31,15 +39,16 @@ const Node = {
   "from": "",
   "to": "",
   "reg": false,
-  "x": 560,
-  "y": 920,
+  "x": 800,
+  "y": 1020,
   "wires": [
     [
       "b0d8a82e1f0279b2",
-      "a40932699e1a3453"
+      "a40932699e1a3453",
+      "1571c86b26ce1146"
     ]
   ],
-  "_order": 82
+  "_order": 79
 }
 
 module.exports = Node;

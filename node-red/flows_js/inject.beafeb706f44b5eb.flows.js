@@ -4,30 +4,21 @@ const Node = {
   "z": "971a7ae6df987a48",
   "g": "84712c039562925d",
   "name": "",
-  "props": [
-    {
-      "p": "payload"
-    },
-    {
-      "p": "topic",
-      "vt": "str"
-    }
-  ],
+  "props": [],
   "repeat": "",
   "crontab": "",
   "once": false,
   "onceDelay": 0.1,
   "topic": "",
-  "payload": "",
-  "payloadType": "date",
-  "x": 1240,
-  "y": 800,
+  "x": 1275,
+  "y": 820,
   "wires": [
     [
-      "672ca07121c4d922"
+      "17e3f098a229b972"
     ]
   ],
-  "_order": 66
+  "l": false,
+  "_order": 65
 }
 
 module.exports = Node;

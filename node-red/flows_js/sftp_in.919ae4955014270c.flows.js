@@ -4,15 +4,15 @@ const Node = {
   "z": "971a7ae6df987a48",
   "g": "e183203bdc1f7193",
   "sftp": "40cbd8d7867f6d53",
-  "operation": "get",
+  "operation": "list",
   "filename": "",
   "localFilename": "",
   "fileContents": "",
   "fileExtension": ".txt",
-  "workdir": "Randers",
+  "workdir": "",
   "savedir": "",
   "name": "",
-  "x": 1390,
+  "x": 1470,
   "y": 720,
   "wires": [
     [

@@ -1,10 +1,10 @@
 const Node = {
-  "id": "c31471d44a880896",
+  "id": "c09b6726931f8437",
   "type": "debug",
   "z": "971a7ae6df987a48",
-  "g": "e183203bdc1f7193",
-  "name": "SFTP response",
-  "active": true,
+  "g": "db20f1c3d096597b",
+  "name": "SFTP request",
+  "active": false,
   "tosidebar": true,
   "console": false,
   "tostatus": false,
@@ -12,10 +12,10 @@ const Node = {
   "targetType": "msg",
   "statusVal": "",
   "statusType": "auto",
-  "x": 1900,
-  "y": 720,
+  "x": 480,
+  "y": 980,
   "wires": [],
-  "_order": 48
+  "_order": 84
 }
 
 module.exports = Node;

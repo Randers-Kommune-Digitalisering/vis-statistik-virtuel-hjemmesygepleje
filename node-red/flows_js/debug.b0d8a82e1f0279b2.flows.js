@@ -4,7 +4,7 @@ const Node = {
   "z": "971a7ae6df987a48",
   "g": "db20f1c3d096597b",
   "name": "SFTP response 2",
-  "active": true,
+  "active": false,
   "tosidebar": true,
   "console": false,
   "tostatus": false,
@@ -12,10 +12,10 @@ const Node = {
   "targetType": "msg",
   "statusVal": "",
   "statusType": "auto",
-  "x": 810,
-  "y": 840,
+  "x": 790,
+  "y": 980,
   "wires": [],
-  "_order": 83
+  "_order": 80
 }
 
 module.exports = Node;

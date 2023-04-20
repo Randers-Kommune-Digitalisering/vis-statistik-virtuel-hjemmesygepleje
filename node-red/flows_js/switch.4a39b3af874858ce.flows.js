@@ -1,10 +1,10 @@
 const Node = {
-  "id": "500dcf2064991de6",
+  "id": "4a39b3af874858ce",
   "type": "switch",
   "z": "971a7ae6df987a48",
   "g": "db20f1c3d096597b",
-  "name": "Filter out non-CSV",
-  "property": "$contains(payload.filename, \".csv\")",
+  "name": "More files?",
+  "property": "$flowContext(\"loop.fileCount_current\") < $flowContext(\"loop.fileCount_total\")",
   "propertyType": "jsonata",
   "rules": [
     {
@@ -17,17 +17,17 @@ const Node = {
   "checkall": "true",
   "repair": false,
   "outputs": 2,
-  "x": 470,
-  "y": 920,
+  "x": 270,
+  "y": 860,
   "wires": [
     [
-      "6cb78c218ecfb35f"
+      "8a8a76f130f7e507"
     ],
     [
-      "811cb608fa49c298"
+      "9e830dc68e4251a3"
     ]
   ],
-  "_order": 81
+  "_order": 86
 }
 
 module.exports = Node;

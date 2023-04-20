@@ -3,7 +3,7 @@ const Node = {
   "type": "debug",
   "z": "971a7ae6df987a48",
   "g": "84712c039562925d",
-  "name": "Read CSV",
+  "name": "CSV as JSON",
   "active": true,
   "tosidebar": true,
   "console": false,
@@ -12,10 +12,10 @@ const Node = {
   "targetType": "msg",
   "statusVal": "",
   "statusType": "auto",
-  "x": 1810,
-  "y": 800,
+  "x": 1660,
+  "y": 820,
   "wires": [],
-  "_order": 67
+  "_order": 66
 }
 
 module.exports = Node;

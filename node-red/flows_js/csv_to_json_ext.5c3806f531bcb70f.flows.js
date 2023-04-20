@@ -5,8 +5,8 @@ const Node = {
   "g": "84712c039562925d",
   "name": "",
   "version": "0.1",
-  "source": "payload",
-  "delimiter": ";",
+  "source": "filename",
+  "delimiter": ",",
   "quote": "\"",
   "escape": "\"",
   "ignoreEmpty": false,
@@ -15,15 +15,15 @@ const Node = {
   "noheader": false,
   "includeColumns": "",
   "headers": "",
-  "debug": false,
-  "x": 1630,
-  "y": 800,
+  "debug": true,
+  "x": 1450,
+  "y": 820,
   "wires": [
     [
       "f0554c201da8baf5"
     ]
   ],
-  "_order": 70
+  "_order": 69
 }
 
 module.exports = Node;
