@@ -16,13 +16,13 @@ const Node = {
   "drop": false,
   "allowrate": false,
   "outputs": 1,
-  "x": 475,
-  "y": 1580,
+  "x": 375,
+  "y": 1100,
   "wires": [
     []
   ],
   "l": false,
-  "_order": 59
+  "_order": 39
 }
 
 module.exports = Node;

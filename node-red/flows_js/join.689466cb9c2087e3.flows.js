@@ -19,15 +19,15 @@ const Node = {
   "reduceInit": "",
   "reduceInitType": "",
   "reduceFixup": "",
-  "x": 765,
-  "y": 1580,
+  "x": 665,
+  "y": 1100,
   "wires": [
     [
       "7c0ab6f95710bc73"
     ]
   ],
   "l": false,
-  "_order": 60
+  "_order": 40
 }
 
 module.exports = Node;
