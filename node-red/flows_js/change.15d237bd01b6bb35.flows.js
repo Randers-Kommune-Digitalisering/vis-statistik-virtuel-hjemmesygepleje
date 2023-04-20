@@ -37,7 +37,14 @@ const Node = {
       "t": "set",
       "p": "currentStatus.status.download_speed",
       "pt": "msg",
-      "to": "currentStatus.status.download_time.totalMillis / currentStatus.attrs.size",
+      "to": "currentStatus.attrs.size / currentStatus.status.download_time.totalMillis ",
+      "tot": "jsonata"
+    },
+    {
+      "t": "set",
+      "p": "currentStatus.status.download_speed_string",
+      "pt": "msg",
+      "to": "currentStatus.status.download_speed & \" kb/s\"",
       "tot": "jsonata"
     },
     {

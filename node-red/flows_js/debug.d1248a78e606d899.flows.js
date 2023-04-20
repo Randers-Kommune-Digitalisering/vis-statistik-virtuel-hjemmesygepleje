@@ -1,21 +1,20 @@
 const Node = {
-  "id": "87f5ac2e106cf827",
+  "id": "d1248a78e606d899",
   "type": "debug",
   "z": "971a7ae6df987a48",
-  "g": "eb678f5d548bb82e",
-  "name": "Read CSV",
+  "name": "debug 30",
   "active": true,
   "tosidebar": true,
   "console": false,
   "tostatus": false,
-  "complete": "payload",
-  "targetType": "msg",
+  "complete": "true",
+  "targetType": "full",
   "statusVal": "",
   "statusType": "auto",
-  "x": 590,
-  "y": 1140,
+  "x": 1540,
+  "y": 640,
   "wires": [],
-  "_order": 77
+  "_order": 93
 }
 
 module.exports = Node;

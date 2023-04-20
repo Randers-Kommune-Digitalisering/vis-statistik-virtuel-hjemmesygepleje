@@ -14,20 +14,6 @@ const Node = {
     },
     {
       "t": "set",
-      "p": "payload.status.download_started",
-      "pt": "msg",
-      "to": "true",
-      "tot": "bool"
-    },
-    {
-      "t": "set",
-      "p": "payload.status.download_started_millis",
-      "pt": "msg",
-      "to": "$millis()",
-      "tot": "jsonata"
-    },
-    {
-      "t": "set",
       "p": "payload",
       "pt": "msg",
       "to": "payload",
