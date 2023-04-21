@@ -1,0 +1,50 @@
+{
+    "name": "node-red-contrib-ftp",
+    "version": "0.0.9",
+    "description": "A Node-RED FTP/SFTP Client.",
+    "dependencies": {
+      "ftp": "0.x",
+      "ssh2-sftp-client": "^8.x.x"
+    },
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/joeartsea/node-red-contrib-ftp"
+    },
+    "license": "Apache",
+    "keywords": [
+      "node-red",
+      "ftp"
+    ],
+    "node-red": {
+      "nodes": {
+        "ftp": "ftp.js",
+        "sftp": "sftp.js"
+      }
+    },
+    "author": {
+      "name": "Atsushi Kojo",
+      "email": "artsnet111@gmail.com"
+    },
+    "maintainers": [
+      {
+        "name": "joeartsea",
+        "email": "artsnet111@gmail.com"
+      },
+      {
+        "name": "moriuchi"
+      },
+      {
+        "name": "Rogermax",
+        "email": "rogermoreta@gmail.com"
+      },
+      {
+        "name": "bluepup"
+      },
+      {
+        "name": "johanon"
+      },
+      {
+        "name": "st-randers"
+      }
+    ]
+  }
