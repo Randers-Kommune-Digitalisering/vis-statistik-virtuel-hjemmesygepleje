@@ -1,82 +1,138 @@
 [
-    {
-      "index": 0,
-      "kolonnenavn": "Appointment_Id_Value__c",
-      "kolonnebeskrivelse": "Er opkald planlagt eller spontant"
-    },
-    {
-      "index": 1,
-      "kolonnenavn": "Bekvem_ubekvem__c",
-      "kolonnebeskrivelse": "Sker kaldet i bekvem eller ubekvem tid"
-    },
-    {
-      "index": 2,
-      "kolonnenavn": "Call_Ended_at__c",
-      "kolonnebeskrivelse": "Hvornår blev kaldet afsluttet"
-    },
-    {
-      "index": 3,
-      "kolonnenavn": "Call_Started_at__c",
-      "kolonnebeskrivelse": "Hvornår blev kaldet startet"
-    },
-    {
-      "index": 4,
-      "kolonnenavn": "Call_Type__c",
-      "kolonnebeskrivelse": "Direct Call = kald fra behandler til borger; SBR call = Kald mellem kolleger"
-    },
-    {
-      "index": 5,
-      "kolonnenavn": "CreatedDate",
-      "kolonnebeskrivelse": "Created date"
-    },
-    {
-      "index": 6,
-      "kolonnenavn": "Doctor_District__c",
-      "kolonnebeskrivelse": "Behandlers distrikt i hjemmeplejen"
-    },
-    {
-      "index": 7,
-      "kolonnenavn": "Doctor_Name__c",
-      "kolonnebeskrivelse": "Behandlers navn"
-    },
-    {
-      "index": 8,
-      "kolonnenavn": "Duration_Calculated_Hours__c",
-      "kolonnebeskrivelse": "Kaldets varighed i timer"
-    },
-    {
-      "index": 9,
-      "kolonnenavn": "Duration_Calculated_Seconds__c",
-      "kolonnebeskrivelse": "Kaldets varighed i sekunder"
-    },
-    {
-      "index": 10,
-      "kolonnenavn": "Duration__c",
-      "kolonnebeskrivelse": "Varighed i tidsformat1"
-    },
-    {
-      "index": 11,
-      "kolonnenavn": "Duration_mm_ss__c",
-      "kolonnebeskrivelse": "Varighed i tidsformat2"
-    },
-    {
-      "index": 12,
-      "kolonnenavn": "Helligdag__c",
-      "kolonnebeskrivelse": "Sker kaldet på en helligdag"
-    },
-    {
-      "index": 13,
-      "kolonnenavn": "Kontaktknap_besvaret_via__c",
-      "kolonnebeskrivelse": "Har borger ringet op"
-    },
-    {
-      "index": 14,
-      "kolonnenavn": "M_ned__c",
-      "kolonnebeskrivelse": "Hvilken måned"
-    },
-    {
-      "index": 15,
-      "kolonnenavn": "Patient_Days_Active__c",
-      "kolonnebeskrivelse": "Patientens aktive dage"
-    }
+  {
+    "kolonnenavn": "Appointment_Id_Value__c",
+    "beskrivelse": "Værdi for aftale-ID"
+  },
+  {
+    "kolonnenavn": "Bekvem_ubekvem__c",
+    "beskrivelse": "Sker kaldet i bekvem eller ubekvem tid"
+  },
+  {
+    "kolonnenavn": "Call_Ended_at__c",
+    "beskrivelse": "Hvornår blev kaldet afsluttet"
+  },
+  {
+    "kolonnenavn": "Call_Started_at__c",
+    "beskrivelse": "Hvornår blev kaldet startet"
+  },
+  {
+    "kolonnenavn": "Call_Type__c",
+    "beskrivelse": "Direct Call = kald fra behandler til borger; SBR call = Kald mellem kolleger"
+  },
+  {
+    "kolonnenavn": "CreatedDate",
+    "beskrivelse": "Oprettelsesdato"
+  },
+  {
+    "kolonnenavn": "Doctor_District__c",
+    "beskrivelse": "Behandlers distrikt i hjemmeplejen"
+  },
+  {
+    "kolonnenavn": "Doctor_Name__c",
+    "beskrivelse": "Behandlers navn"
+  },
+  {
+    "kolonnenavn": "Duration_Calculated_Hours__c",
+    "beskrivelse": "Kaldets varighed i timer"
+  },
+  {
+    "kolonnenavn": "Duration_Calculated_Seconds__c",
+    "beskrivelse": "Kaldets varighed i sekunder"
+  },
+  {
+    "kolonnenavn": "Duration__c",
+    "beskrivelse": "Varighed i tidsformat1"
+  },
+  {
+    "kolonnenavn": "Duration_mm_ss__c",
+    "beskrivelse": "Varighed i tidsformat2"
+  },
+  {
+    "kolonnenavn": "Helligdag__c",
+    "beskrivelse": "Sker kaldet på en helligdag"
+  },
+  {
+    "kolonnenavn": "Kontaktknap_besvaret_via__c",
+    "beskrivelse": "Har borger ringet op"
+  },
+  {
+    "kolonnenavn": "M_ned__c",
+    "beskrivelse": "Hvilken måned"
+  },
+  {
+    "kolonnenavn": "Patient_Days_Active__c",
+    "beskrivelse": "Hvor mange dage har borger haft skærmen"
+  },
+  {
+    "kolonnenavn": "Patient_District__c",
+    "beskrivelse": "Borgerns distrikt"
+  },
+  {
+    "kolonnenavn": "Patient_Ended_Date__c",
+    "beskrivelse": "Skærm nedtaget"
+  },
+  {
+    "kolonnenavn": "Patient_Name__c",
+    "beskrivelse": "Borgers navn (aktive borgere + 3 måneder står med navn) passive borgere er anonymiseret"
+  },
+  {
+    "kolonnenavn": "Patient_Relative_Call__c",
+    "beskrivelse": "Er kaldet mellem borger og pårørende"
+  },
+  {
+    "kolonnenavn": "Patient_Start_Date__c",
+    "beskrivelse": "Skærm opsat"
+  },
+  {
+    "kolonnenavn": "Request_Status__c",
+    "beskrivelse": "Kaldets status"
+  },
+  {
+    "kolonnenavn": "Requestor_Name__c",
+    "beskrivelse": "Hvem har foretaget opkald"
+  },
+  {
+    "kolonnenavn": "Requestor_Role__c",
+    "beskrivelse": "Rolle for requestor"
+  },
+  {
+    "kolonnenavn": "SBR_Event_Created_DATE__c",
+    "beskrivelse": "Log dato/tid"
+  },
+  {
+    "kolonnenavn": "SBR_Event_Created_DayOfWeek__c",
+    "beskrivelse": "Dag på ugen"
+  },
+  {
+    "kolonnenavn": "SBR_Event_Created_HOUR__c",
+    "beskrivelse": "Tidspunkt på dagen"
+  },
+  {
+    "kolonnenavn": "SBR_Event_Created_TIME__c",
+    "beskrivelse": "Timen på dagen"
+  },
+  {
+    "kolonnenavn": "SBR_Event_Created_VAGTLAG__c",
+    "beskrivelse": "Vagtlag (dag/aften/nat)"
+  },
+  {
+    "kolonnenavn": "SBR_Event_Created_WEEKNUMBER__c",
+    "beskrivelse": "Ugenummer"
+  },
+  {
+    "kolonnenavn": "Serviced_by_District_Parent_Name__c",
+    "beskrivelse": "Borgerens distrikt"
+  },
+  {
+    "kolonnenavn": "Serviced_by_Role__c",
+    "beskrivelse": "Rolle for borger"
+  },
+  {
+    "kolonnenavn": "Sommer_Vintertid__c",
+    "beskrivelse": "Sommer/Vintertid"
+  },
+  {
+    "kolonnenavn": "Årstal_Ugenummer__c",
+    "beskrivelse": "Årstal og ugenummer"
+  }
 ]  
