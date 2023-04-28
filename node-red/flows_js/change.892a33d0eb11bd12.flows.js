@@ -17,7 +17,7 @@ const Node = {
       "t": "set",
       "p": "fileList",
       "pt": "flow",
-      "to": "$flowContext(\"fileList\") @ $fileObj .\t{\t    \"meta\": $meta := $fileObj,\t    \"filename\": $meta.name\t}",
+      "to": "$flowContext(\"fileList\") @ $fileObj .\t{\t    \"meta\": $meta := $fileObj,\t    \"filename\": $meta.filename\t}",
       "tot": "jsonata"
     },
     {

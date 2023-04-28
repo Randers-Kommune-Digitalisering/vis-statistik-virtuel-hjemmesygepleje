@@ -4,7 +4,7 @@ const Node = {
   "z": "971a7ae6df987a48",
   "g": "db20f1c3d096597b",
   "name": "SFTP request",
-  "active": false,
+  "active": true,
   "tosidebar": true,
   "console": false,
   "tostatus": false,

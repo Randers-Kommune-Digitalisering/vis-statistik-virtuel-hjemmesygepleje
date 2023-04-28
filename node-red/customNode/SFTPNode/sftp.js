@@ -129,7 +129,7 @@ module.exports = function (RED)
                             node.error(err, msg);
                             return;
                           }
-                          sftp.readdir(node.workdir, node.sendMsg);
+                          sftp.readdir(remotePath, node.sendMsg);
                         });
                         break;
                       case 'get':
@@ -177,9 +177,9 @@ module.exports = function (RED)
                             let d = new Date();
                             let guid = d.getTime().toString();
                             if (node.fileExtension == '') node.fileExtension = '.txt';
-                            newFile = node.workdir + guid + node.fileExtension;
+                            newFile = node.remotePath + guid + node.fileExtension;
                           } else {
-                            newFile = node.workdir + node.filename;
+                            newFile = node.remotePath + node.filename;
                           }
         
                           let msgData = '';

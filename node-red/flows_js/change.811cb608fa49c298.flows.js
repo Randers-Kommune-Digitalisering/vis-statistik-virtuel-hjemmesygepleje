@@ -37,7 +37,7 @@ const Node = {
       "t": "set",
       "p": "filename",
       "pt": "msg",
-      "to": "path & \"/\" & filename",
+      "to": "payload.filename",
       "tot": "jsonata"
     }
   ],
