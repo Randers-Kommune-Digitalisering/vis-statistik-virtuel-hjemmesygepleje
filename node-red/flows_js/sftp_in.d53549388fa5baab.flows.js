@@ -1,22 +1,23 @@
 const Node = {
-  "id": "dec51ee954d8e78e",
+  "id": "d53549388fa5baab",
   "type": "sftp in",
   "z": "971a7ae6df987a48",
+  "g": "5c29b0234ffc82a9",
   "sftp": "60554a8802a1db94",
-  "operation": "get",
+  "operation": "list",
   "path": "",
   "pattern": "",
   "filename": "",
   "localFilename": "",
   "name": "",
-  "x": 1410,
-  "y": 480,
+  "x": 290,
+  "y": 380,
   "wires": [
     [
-      "51e1bbdf67db32fd"
+      "8c9228be7fc1ca34"
     ]
   ],
-  "_order": 68
+  "_order": 70
 }
 
 module.exports = Node;

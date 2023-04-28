@@ -22,17 +22,12 @@ const Node = {
     },
     {
       "t": "delete",
-      "p": "payload.longname",
+      "p": "payload.meta",
       "pt": "msg"
     },
     {
       "t": "delete",
-      "p": "payload.attrs",
-      "pt": "msg"
-    },
-    {
-      "t": "delete",
-      "p": "parts",
+      "p": "payload.status",
       "pt": "msg"
     },
     {

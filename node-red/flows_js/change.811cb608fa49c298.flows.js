@@ -28,16 +28,16 @@ const Node = {
     },
     {
       "t": "set",
-      "p": "workdir",
+      "p": "path",
       "pt": "msg",
       "to": "Randers",
       "tot": "str"
     },
     {
       "t": "set",
-      "p": "payload.filename",
+      "p": "filename",
       "pt": "msg",
-      "to": "workdir & \"/\" & payload.filename",
+      "to": "path & \"/\" & filename",
       "tot": "jsonata"
     }
   ],

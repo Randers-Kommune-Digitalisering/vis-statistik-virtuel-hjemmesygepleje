@@ -20,12 +20,14 @@ const Node = {
       "vt": "env"
     },
     {
-      "p": "workdir",
+      "p": "path",
       "v": "Randers",
       "vt": "str"
     },
     {
-      "p": "payload"
+      "p": "filename",
+      "v": "2017.csv",
+      "vt": "str"
     }
   ],
   "repeat": "",
@@ -33,10 +35,8 @@ const Node = {
   "once": false,
   "onceDelay": 0.1,
   "topic": "",
-  "payload": "{}",
-  "payloadType": "json",
-  "x": 1250,
-  "y": 480,
+  "x": 1210,
+  "y": 460,
   "wires": [
     [
       "191801912cae56d3",

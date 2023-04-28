@@ -21,12 +21,9 @@ const Node = {
       "vt": "env"
     },
     {
-      "p": "workdir",
+      "p": "path",
       "v": "Randers",
       "vt": "str"
-    },
-    {
-      "p": "payload"
     }
   ],
   "repeat": "",
@@ -34,12 +31,12 @@ const Node = {
   "once": false,
   "onceDelay": 0.1,
   "topic": "",
-  "payload": "{}",
-  "payloadType": "json",
   "x": 150,
   "y": 380,
   "wires": [
-    []
+    [
+      "d53549388fa5baab"
+    ]
   ],
   "_order": 42
 }

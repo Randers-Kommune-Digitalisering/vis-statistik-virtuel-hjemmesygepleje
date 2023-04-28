@@ -17,7 +17,8 @@
 module.exports = function (RED)
 {
     'use strict';
-    var sftp = require('ssh2-sftp-client');
+    //var sftp = require('ssh2-sftp-client');
+    const sftp = require('ssh2').Client;
     var fs = require('fs');
 
     function SftpNode(n) {
@@ -70,10 +71,13 @@ module.exports = function (RED)
             node.on('input', function (msg)
             {
                 /* Set SFTP settings from msg */
-                var path = node.path || msg.path || './';
-                var pattern = node.pattern || msg.pattern || '';
-                var filename = node.filename || msg.filename || '';
-                var localFilename = node.localFilename || msg.localFilename || '';
+                var remotePath = msg.path || node.path || './';
+                var pattern =  msg.pattern || node.pattern || '';
+
+                var remoteFilename = msg.filename || node.filename || '';
+                var remoteFilepath = remotePath + "/" + remoteFilename;
+
+                var localFilename = msg.localfilename || msg.filename || node.localFilename || '';
                 
                 node.sftpConfig.options.host = msg.host || node.sftpConfig.options.host;
                 node.sftpConfig.options.port = msg.port || node.sftpConfig.options.port;
@@ -85,6 +89,9 @@ module.exports = function (RED)
 
                 this.sendMsg = function (err, result)
                 {
+                    console.log("Performing operation: " + node.operation);
+                    console.log("Filename: " + remoteFilename);
+
                     if (err)
                     {
                         node.error(err, msg);
@@ -100,34 +107,166 @@ module.exports = function (RED)
                     }
                     else if (node.operation == 'append')
                     {
-                        msg.payload = 'Append operation successful. ' + filename;
+                        msg.payload = 'Append operation successful. ' + remoteFilename;
                     }
                     else
                     {
                         msg.payload = result;
                     }
 
-                    msg.path = path;
-                    msg.pattern = pattern;
-                    msg.filename = filename;
-                    msg.localFilename = localFilename;
                     node.send(msg);
                 };
 
+
+
+
+                conn.on('ready', function ()
+                {
+                    switch (node.operation) {
+                      case 'list':
+                        conn.sftp(function (err, sftp) {
+                          if (err) {
+                            node.error(err, msg);
+                            return;
+                          }
+                          sftp.readdir(node.workdir, node.sendMsg);
+                        });
+                        break;
+                      case 'get':
+                        conn.sftp(function (err, sftp) {
+                          if (err) {
+                            node.error(err, msg);
+                            return;
+                          }
+        
+                          //let bufferarray = [];
+        
+                          // Be very careful bufferSize too large causes issues with multi threading
+                          let stream = sftp.createReadStream(remoteFilepath, { highWaterMark: 1024, bufferSize: 1024 });
+        
+                          let counter = 0;
+                          let buf = '';
+                          let byteSize = 65536;
+        
+                          stream
+                            .on('data', function (d) {
+                              buf += d;
+                              counter++;
+                              // console.log("Read Chunk ("+ counter + "): " + d.length + " Length: " + buf.length);
+                            })
+                            .on('end', function () {
+                              node.status({});
+                              conn.end();
+                              console.log('SFTP Read Chunks ' + counter + ' Length: ' + buf.length);
+                              msg.payload = {};
+                              msg.payload.filedata = buf;
+                              node.send(msg);
+                            });
+                        });
+                        break;
+                      case 'put':
+                        conn.sftp(function (err, sftp) {
+                          if (err) {
+                            node.error(err, msg);
+                            return;
+                          }
+                          let newFile = '';
+                          if (msg.payload.filename) {
+                            newFile = msg.payload.filename;
+                          } else if (node.filename == '') {
+                            let d = new Date();
+                            let guid = d.getTime().toString();
+                            if (node.fileExtension == '') node.fileExtension = '.txt';
+                            newFile = node.workdir + guid + node.fileExtension;
+                          } else {
+                            newFile = node.workdir + node.filename;
+                          }
+        
+                          let msgData = '';
+                          if (msg.payload.filedata) msgData = msg.payload.filedata;
+                          else msgData = JSON.stringify(msg.payload);
+        
+                          console.log('SFTP Put:' + newFile);
+                          let writeStream = sftp.createWriteStream(newFile, { flags: 'w' });
+                          // var payloadBuff = new Buffer(msgData);
+                          // writeStream.write(payloadBuff, node.sendMsg);
+                          writeStream.write(msgData, function (err, result) {
+                            node.status({});
+                            conn.end();
+                            msg.payload = {};
+                            msg.payload.filename = newFile;
+                            node.send(msg);
+                          });
+                        });
+                        break;
+                      case 'delete':
+                        conn.sftp(function (err, sftp) {
+                          if (err) {
+                            node.error(err, msg);
+                            return;
+                          }
+                          console.log('SFTP Deleting File: ' + remoteFilepath);
+                          sftp.unlink(remoteFilepath, function (err) {
+                            if (err) {
+                              node.error(err, msg);
+                              return;
+                            } else {
+                              console.log('SFTP file unlinked');
+                              node.status({});
+                              msg.payload = {};
+                              node.send(msg);
+                            }
+                            conn.end();
+                          });
+                        });
+                        break;
+                    }
+                  });
+                  conn.on('error', function (error) {
+                    node.error(error, msg);
+                    return;
+                  });
+
+                  conn.connect(node.sftpConfig.options);
+
+                /*
                 conn.connect(node.sftpConfig.options)
                     .then(() =>
                     {
                         switch (node.operation)
                         {
                             case 'list':
-                                return conn.list(path, pattern);
+                                return conn.list(remotePath, pattern);
                                 break;
                             case 'get':
-                                return conn.get(filename, localFilename);
+                                // V1
+                                //return conn.get(remoteFilepath, localFilename);
+                                
+                                //V2
+                                //return conn.fastGet(remoteFilepath, localFilename);
+                        
+                                // V3
+                                let stream = sftp.createReadStream(remoteFilepath, { highWaterMark: 1024, bufferSize: 1024 });
+                                let counter = 0;
+                                let buf = '';
+                                //let byteSize = 65536;
+
+                                stream
+                                .on('data', function (d) {
+                                    buf += d;
+                                    counter++;
+                                    console.log("Read Chunk ("+ counter + "): " + d.length + " Length: " + buf.length);
+                                    })
+                                .on('end', function () {
+                                    console.log('SFTP Read Chunks ' + counter + ' Length: ' + buf.length);
+                                    return buf;
+                                    });
                                 break;
+
                             case 'put':
-                                return conn.put(localFilename, filename);
+                                return conn.put(localFilename, remoteFilename);
                                 break;
+
                             case 'append':
                                 var input = '';
                                 if (typeof localFilename === 'string') {
@@ -135,13 +274,15 @@ module.exports = function (RED)
                                 } else {
                                     input = localFilename;
                                 }
-                                return conn.append(input, filename);
+                                return conn.append(input, remoteFilename);
                                 break;
+
                             case 'delete':
-                                return conn.delete(filename, node.sendMsg);
+                                return conn.delete(remoteFilename, node.sendMsg);
                                 break;
+
                             case 'mkdir':
-                                return conn.mkdir(path, true);
+                                return conn.mkdir(remotePath, true);
                                 break;
                         }
                     })
@@ -156,12 +297,13 @@ module.exports = function (RED)
                         node.error(err, msg);
                         node.status({ fill: 'red', shape: 'ring', text: err.message });
                         return;
-                    });
-            });
+                    });*/
+
+            }); // Node.on()
         }
         else
         {
-            this.error('missing sftp configuration');
+            this.error('Missing SFTP configuration. Either config msg-object or directly in the node configuration.');
         }
     }
     RED.nodes.registerType('sftp in', SftpInNode);
