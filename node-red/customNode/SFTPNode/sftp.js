@@ -93,8 +93,8 @@ module.exports = function (RED)
 
                     if (err)
                     {
+                        node.status({fill:"red",shape:"dot",text:"Error: " + err});
                         node.error(err, msg);
-                        node.status({ fill: 'red', shape: 'ring', text: 'failed' });
                         return;
                     }
 
@@ -102,10 +102,12 @@ module.exports = function (RED)
 
                     if (node.operation == 'get')
                     {
+                        node.status({fill:"green",shape:"dot",text:"Get operation successful");
                         msg.payload = 'Get operation successful. ' + localFilename;
                     }
                     else if (node.operation == 'append')
                     {
+                        node.status({fill:"green",shape:"dot",text:"Append operation successful");
                         msg.payload = 'Append operation successful. ' + remoteFilename;
                     }
                     else
@@ -128,6 +130,7 @@ module.exports = function (RED)
                         {
                           if (err)
                           {
+                            node.status({fill:"red",shape:"dot",text:"Error during LIST operation: " + err});
                             node.error(err, msg);
                             return;
                           }
@@ -142,6 +145,7 @@ module.exports = function (RED)
                         {
                           if (err)
                           {
+                            node.status({fill:"red",shape:"dot",text:"Error during GET operation: " + err});
                             node.error(err, msg);
                             return;
                           }
@@ -164,7 +168,6 @@ module.exports = function (RED)
                             })
                             .on('end', function ()
                             {
-                              node.status({});
                               conn.end();
 
                               node.status({fill:"green",shape:"dot",text:"Download successful"});
@@ -235,6 +238,7 @@ module.exports = function (RED)
                         {
                           if (err)
                           {
+                            node.status({fill:"red",shape:"dot",text:"Error during DELETE operation: " + err});
                             node.error(err, msg);
                             return;
                           }
