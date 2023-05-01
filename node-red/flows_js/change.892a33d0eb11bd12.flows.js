@@ -24,6 +24,14 @@ const Node = {
       "t": "set",
       "p": "fileList",
       "pt": "flow",
+      "to": "fileList[0]",
+      "tot": "flow",
+      "dc": true
+    },
+    {
+      "t": "set",
+      "p": "fileList",
+      "pt": "flow",
       "to": "$flowContext(\"fileList\") ~> | $ | ({\t    \"status\":\t    {\t        \"download_started\": false,\t        \"download_started_millis\": 0,\t        \"download_finished\": false,\t        \"download_finished_millis\": 0,\t        \"download_time\": {},\t        \"download_speed\": 0\t    }\t}\t)|",
       "tot": "jsonata"
     },

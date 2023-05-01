@@ -37,7 +37,7 @@ const Node = {
       "t": "set",
       "p": "currentStatus.status.download_speed",
       "pt": "msg",
-      "to": "currentStatus.attrs.size / currentStatus.status.download_time.totalMillis ",
+      "to": "(currentStatus.meta.attrs.size / currentStatus.status.download_time.totalMillis) ~> $round()",
       "tot": "jsonata"
     },
     {
