@@ -29,13 +29,6 @@ const Node = {
     },
     {
       "t": "set",
-      "p": "fileList",
-      "pt": "flow",
-      "to": "fileList[3]",
-      "tot": "flow"
-    },
-    {
-      "t": "set",
       "p": "loop",
       "pt": "flow",
       "to": "{\t    \"fileCount_total\": $flowContext(\"fileList\") ~> $count(),\t    \"fileCount_current\": 0\t}",

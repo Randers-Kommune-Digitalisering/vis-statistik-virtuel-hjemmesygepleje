@@ -102,12 +102,12 @@ module.exports = function (RED)
 
                     if (node.operation == 'get')
                     {
-                        node.status({fill:"green",shape:"dot",text:"Get operation successful");
+                        node.status({fill:"green",shape:"dot",text:"Get operation successful"});
                         msg.payload = 'Get operation successful. ' + localFilename;
                     }
                     else if (node.operation == 'append')
                     {
-                        node.status({fill:"green",shape:"dot",text:"Append operation successful");
+                        node.status({fill:"green",shape:"dot",text:"Append operation successful"});
                         msg.payload = 'Append operation successful. ' + remoteFilename;
                     }
                     else
