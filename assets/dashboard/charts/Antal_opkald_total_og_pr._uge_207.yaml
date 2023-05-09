@@ -1,0 +1,42 @@
+slice_name: Antal opkald total og pr. uge
+description: null
+certified_by: null
+certification_details: null
+viz_type: pie
+params:
+  datasource: 26__table
+  viz_type: pie
+  granularity_sqla: Opkalds_start
+  time_range: No filter
+  groupby:
+  - ugenummer
+  metric: count
+  adhoc_filters: []
+  row_limit: 1000
+  sort_by_metric: true
+  color_scheme: d3Category20c
+  show_labels_threshold: 1
+  show_legend: false
+  legendType: scroll
+  legendOrientation: top
+  legendMargin: null
+  label_type: key
+  number_format: SMART_NUMBER
+  date_format: smart_date
+  show_labels: true
+  labels_outside: true
+  label_line: true
+  show_total: true
+  outerRadius: 80
+  donut: true
+  innerRadius: 46
+  extra_form_data: {}
+  dashboards:
+  - 11
+query_context: '{"datasource":{"id":26,"type":"table"},"force":false,"queries":[{"time_range":"No
+  filter","granularity":"Opkalds_start","filters":[],"extras":{"having":"","where":""},"applied_time_extras":{},"columns":["ugenummer"],"metrics":["count"],"orderby":[["count",false]],"annotation_layers":[],"row_limit":1000,"series_limit":0,"order_desc":true,"url_params":{},"custom_params":{},"custom_form_data":{}}],"form_data":{"datasource":"26__table","viz_type":"pie","granularity_sqla":"Opkalds_start","time_range":"No
+  filter","groupby":["ugenummer"],"metric":"count","adhoc_filters":[],"row_limit":1000,"sort_by_metric":true,"color_scheme":"d3Category20c","show_labels_threshold":1,"show_legend":false,"legendType":"scroll","legendOrientation":"top","legendMargin":null,"label_type":"key","number_format":"SMART_NUMBER","date_format":"smart_date","show_labels":true,"labels_outside":true,"label_line":true,"show_total":true,"outerRadius":80,"donut":true,"innerRadius":46,"extra_form_data":{},"dashboards":[11],"force":false,"result_format":"json","result_type":"full"},"result_format":"json","result_type":"full"}'
+cache_timeout: null
+uuid: 9d27484a-e142-432e-bb0c-ca76f5bd2c6e
+version: 1.0.0
+dataset_uuid: b9c3cef7-de8c-4802-8217-d07ebb287023

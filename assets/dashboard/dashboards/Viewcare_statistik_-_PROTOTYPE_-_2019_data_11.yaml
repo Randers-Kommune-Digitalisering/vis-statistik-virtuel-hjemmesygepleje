@@ -1,0 +1,249 @@
+dashboard_title: Viewcare statistik - PROTOTYPE - 2019 data
+description: null
+css: "/* Background light gray */\n.css-t22g9u\n{\n  background-color: lightgray;\n\
+  }\n\n/* Padding left when left menu bar is hidden */\n.css-18pwj0c ~ .css-t22g9u\
+  \ > *\n{\n  padding-left: 30px;\n}\n\n/* Randers-logo - change #MARKDOWN id to fit\
+  \ with project */\n#MARKDOWN-EC9aPoyKmy\n.dashboard-component-chart-holder\n{\n\
+  \  background-color: #405C87;\n  background-image:url('https://www.randers.dk/static/logo.svg');\n\
+  \  background-position: 25px 16px;\n  background-repeat: no-repeat;\n  background-size:\
+  \ 17vh;\n}\n.dashboard-chart-id-207\n{\n  background-image: url(\"https://corpital.com/app/uploads/2021/08/Viewcare-logo.png\"\
+  );\n    background-repeat: no-repeat;\n}\n.dashboard-chart-id-207.pie\n{\n  font-size:\
+  \ 33px;  \n}\n\n"
+slug: null
+uuid: 43072b83-9a2e-4171-9c55-586cf6ef7cbb
+position:
+  CHART-explore-204-1:
+    children: []
+    id: CHART-explore-204-1
+    meta:
+      chartId: 204
+      height: 58
+      sliceName: Opkalds varighed gennemsnit pr uge
+      uuid: a18ebdd6-83d5-44f3-983d-664c0369cb8b
+      width: 8
+    parents:
+    - ROOT_ID
+    - GRID_ID
+    - ROW-gZKY3DSrS
+    type: CHART
+  CHART-explore-206-1:
+    children: []
+    id: CHART-explore-206-1
+    meta:
+      chartId: 206
+      height: 58
+      sliceName: Opkald pr distrikt
+      uuid: d37000e6-f4b0-4e39-a9da-c35ba1e97ded
+      width: 4
+    parents:
+    - ROOT_ID
+    - GRID_ID
+    - ROW-gZKY3DSrS
+    type: CHART
+  CHART-explore-207-1:
+    children: []
+    id: CHART-explore-207-1
+    meta:
+      chartId: 207
+      height: 61
+      sliceName: Antal opkald total og pr. uge
+      uuid: 9d27484a-e142-432e-bb0c-ca76f5bd2c6e
+      width: 4
+    parents:
+    - ROOT_ID
+    - GRID_ID
+    - ROW-g8KUPMwFOI
+    type: CHART
+  CHART-zKDDq8qlZX:
+    children: []
+    id: CHART-zKDDq8qlZX
+    meta:
+      chartId: 203
+      height: 61
+      sliceName: Antal opkald pr. uge
+      uuid: 38fb6141-f969-4c53-a87f-c3eafad981e0
+      width: 8
+    parents:
+    - ROOT_ID
+    - GRID_ID
+    - ROW-g8KUPMwFOI
+    type: CHART
+  DASHBOARD_VERSION_KEY: v2
+  GRID_ID:
+    children:
+    - ROW-RJIiwpABC
+    - ROW-g8KUPMwFOI
+    - ROW-gZKY3DSrS
+    id: GRID_ID
+    parents:
+    - ROOT_ID
+    type: GRID
+  HEADER_ID:
+    id: HEADER_ID
+    meta:
+      text: Viewcare statistik - PROTOTYPE - 2019 data
+    type: HEADER
+  MARKDOWN-EC9aPoyKmy:
+    children: []
+    id: MARKDOWN-EC9aPoyKmy
+    meta:
+      code: '&nbsp;'
+      height: 9
+      width: 12
+    parents:
+    - ROOT_ID
+    - GRID_ID
+    - ROW-RJIiwpABC
+    type: MARKDOWN
+  ROOT_ID:
+    children:
+    - GRID_ID
+    id: ROOT_ID
+    type: ROOT
+  ROW-RJIiwpABC:
+    children:
+    - MARKDOWN-EC9aPoyKmy
+    id: ROW-RJIiwpABC
+    meta:
+      background: BACKGROUND_TRANSPARENT
+    parents:
+    - ROOT_ID
+    - GRID_ID
+    type: ROW
+  ROW-g8KUPMwFOI:
+    children:
+    - CHART-explore-207-1
+    - CHART-zKDDq8qlZX
+    id: ROW-g8KUPMwFOI
+    meta:
+      background: BACKGROUND_TRANSPARENT
+    parents:
+    - ROOT_ID
+    - GRID_ID
+    type: ROW
+  ROW-gZKY3DSrS:
+    children:
+    - CHART-explore-206-1
+    - CHART-explore-204-1
+    id: ROW-gZKY3DSrS
+    meta:
+      background: BACKGROUND_TRANSPARENT
+    parents:
+    - ROOT_ID
+    - GRID_ID
+    type: ROW
+metadata:
+  color_scheme: ''
+  refresh_frequency: 0
+  expanded_slices: {}
+  label_colors: {}
+  timed_refresh_immune_slices: []
+  cross_filters_enabled: false
+  default_filters: '{}'
+  chart_configuration: {}
+  native_filter_configuration:
+  - id: NATIVE_FILTER--dkDd3Vo9
+    controlValues:
+      enableEmptyFilter: false
+      defaultToFirstItem: false
+      multiSelect: true
+      searchAllOptions: false
+      inverseSelection: false
+    name: Distrikt
+    filterType: filter_select
+    targets:
+    - column:
+        name: distrikt
+      datasetUuid: b9c3cef7-de8c-4802-8217-d07ebb287023
+    defaultDataMask:
+      extraFormData: {}
+      filterState: {}
+      ownState: {}
+    cascadeParentIds: []
+    scope:
+      rootPath:
+      - ROOT_ID
+      excluded: []
+    type: NATIVE_FILTER
+    description: ''
+    chartsInScope:
+    - 203
+    - 204
+    - 205
+    tabsInScope: []
+  - id: NATIVE_FILTER-1tOZ5NNt3
+    controlValues:
+      enableEmptyFilter: false
+      defaultToFirstItem: false
+      multiSelect: true
+      searchAllOptions: false
+      inverseSelection: false
+    name: Ugenummer
+    filterType: filter_select
+    targets:
+    - column:
+        name: ugenummer
+      datasetUuid: b9c3cef7-de8c-4802-8217-d07ebb287023
+    defaultDataMask:
+      extraFormData: {}
+      filterState: {}
+      ownState: {}
+    cascadeParentIds: []
+    scope:
+      rootPath:
+      - ROOT_ID
+      excluded: []
+    type: NATIVE_FILTER
+    description: ''
+    chartsInScope:
+    - 203
+    - 204
+    - 205
+    tabsInScope: []
+  shared_label_colors:
+    2019 - 1: '#3182bd'
+    2019 - 52: '#6baed6'
+    2019 - 43: '#9ecae1'
+    2019 - 44: '#c6dbef'
+    2019 - 42: '#e6550d'
+    2019 - 40: '#fd8d3c'
+    2019 - 41: '#fdae6b'
+    2019 - 39: '#fdd0a2'
+    2019 - 51: '#31a354'
+    2019 - 50: '#74c476'
+    2019 - 47: '#a1d99b'
+    2019 - 45: '#c7e9c0'
+    2019 - 26: '#756bb1'
+    2019 - 36: '#9e9ac8'
+    2019 - 29: '#bcbddc'
+    2019 - 49: '#dadaeb'
+    2019 - 23: '#636363'
+    2019 - 25: '#969696'
+    2019 - 30: '#bdbdbd'
+    2019 - 48: '#d9d9d9'
+    2019 - 46: '#3182bd'
+    2019 - 31: '#6baed6'
+    2019 - 24: '#9ecae1'
+    2019 - 38: '#c6dbef'
+    2019 - 35: '#e6550d'
+    count: '#3182bd'
+    Paderup Assentoft: '#6baed6'
+    "F\xE5rup NEDLAGT": '#9ecae1'
+    "Lindev\xE6nget": '#c6dbef'
+    Dronningborg: '#e6550d'
+    Distrikt Midtbyen: '#fd8d3c'
+    Sygeplejen Nord - Randers: '#fdae6b'
+    Kristrup Vorup: '#fdd0a2'
+    "M\xF8llevang": '#31a354'
+    "Bakkeg\xE5rden": '#74c476'
+    "Bakkeg\xE5rden Inde": '#a1d99b'
+    "Borupv\xE6nget": '#c7e9c0'
+    "Lang\xE5": '#756bb1'
+    Kollektivhuset: '#9e9ac8'
+    "\xC5bakken": '#bcbddc'
+    Borgerteam Sydvest: '#dadaeb'
+    Antal opkald: '#5470C6'
+    Gennemsnitlig varighed: '#6BD3B3'
+    "L\xE6ngste opkald (1)": '#FCC550'
+  color_scheme_domain: []
+version: 1.0.0

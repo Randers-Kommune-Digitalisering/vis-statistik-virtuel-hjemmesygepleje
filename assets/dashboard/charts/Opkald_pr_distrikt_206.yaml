@@ -1,0 +1,33 @@
+slice_name: Opkald pr distrikt
+description: null
+certified_by: null
+certification_details: null
+viz_type: sunburst_v2
+params:
+  datasource: 26__table
+  viz_type: sunburst_v2
+  granularity_sqla: Opkalds_start
+  time_range: No filter
+  columns:
+  - distrikt
+  metric: count
+  adhoc_filters: []
+  row_limit: 10000
+  sort_by_metric: true
+  color_scheme: d3Category20c
+  linear_color_scheme: superset_seq_1
+  show_labels: true
+  show_labels_threshold: 1
+  label_type: key_value
+  number_format: SMART_NUMBER
+  date_format: smart_date
+  extra_form_data: {}
+  dashboards:
+  - 11
+query_context: '{"datasource":{"id":26,"type":"table"},"force":false,"queries":[{"time_range":"No
+  filter","granularity":"Opkalds_start","filters":[],"extras":{"having":"","where":""},"applied_time_extras":{},"columns":["distrikt"],"metrics":["count"],"orderby":[["count",false]],"annotation_layers":[],"row_limit":10000,"series_limit":0,"order_desc":true,"url_params":{},"custom_params":{},"custom_form_data":{}}],"form_data":{"datasource":"26__table","viz_type":"sunburst_v2","granularity_sqla":"Opkalds_start","time_range":"No
+  filter","columns":["distrikt"],"metric":"count","adhoc_filters":[],"row_limit":10000,"sort_by_metric":true,"color_scheme":"d3Category20c","linear_color_scheme":"superset_seq_1","show_labels":true,"show_labels_threshold":1,"label_type":"key_value","number_format":"SMART_NUMBER","date_format":"smart_date","extra_form_data":{},"dashboards":[11],"force":false,"result_format":"json","result_type":"full"},"result_format":"json","result_type":"full"}'
+cache_timeout: null
+uuid: d37000e6-f4b0-4e39-a9da-c35ba1e97ded
+version: 1.0.0
+dataset_uuid: b9c3cef7-de8c-4802-8217-d07ebb287023
