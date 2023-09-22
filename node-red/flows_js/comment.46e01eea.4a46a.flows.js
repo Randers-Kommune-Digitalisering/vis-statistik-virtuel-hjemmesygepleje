@@ -2,12 +2,20 @@ const Node = {
   "id": "46e01eea.4a46a",
   "type": "comment",
   "z": "39989dadda5c9a15",
-  "name": "Simple",
+  "name": "Mangler!",
   "info": "",
-  "x": 870,
-  "y": 60,
+  "x": 1120,
+  "y": 380,
   "wires": [],
-  "_order": 71
+  "_order": 82
 }
+
+Node.info = `
+ - Tilføj dato til Knox data (til beregning af sidst set dato/tid
+ - Validere data
+ - Ændre hvordan lokation data er stored
+ - Error logging
+ - Duplicate handling
+`
 
 module.exports = Node;

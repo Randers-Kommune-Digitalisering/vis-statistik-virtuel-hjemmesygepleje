@@ -3,7 +3,7 @@ const Node = {
   "type": "change",
   "z": "39989dadda5c9a15",
   "g": "8442dad57efd375b",
-  "name": "sæt fil og filnavn",
+  "name": "sæt fil, navn, dato og tid",
   "rules": [
     {
       "t": "set",
@@ -21,6 +21,20 @@ const Node = {
     },
     {
       "t": "set",
+      "p": "date",
+      "pt": "msg",
+      "to": "req.body.date",
+      "tot": "msg"
+    },
+    {
+      "t": "set",
+      "p": "time",
+      "pt": "msg",
+      "to": "req.body.time",
+      "tot": "msg"
+    },
+    {
+      "t": "set",
       "p": "errMsgUser",
       "pt": "msg",
       "to": "false",
@@ -32,14 +46,14 @@ const Node = {
   "from": "",
   "to": "",
   "reg": false,
-  "x": 600,
+  "x": 630,
   "y": 180,
   "wires": [
     [
       "5ef7e76e41c4b1fe"
     ]
   ],
-  "_order": 81
+  "_order": 92
 }
 
 module.exports = Node;
