@@ -17,7 +17,7 @@ const Node = {
       "3153fbd3.203a64"
     ]
   ],
-  "_order": 98
+  "_order": 96
 }
 
 Node.template = `
@@ -26,11 +26,10 @@ const datetime = document.getElementById('datetime');
 const filetype = document.getElementById('filetype');
 const submit = document.getElementById('submit');
 
-var now = new Date();
-//now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-datetime.value = now.toString().slice(0, 16);
-
-console.log(now.toISOString().slice(0, 16))
+let now = new Date();
+let time_offset = now.getMinutes() - now.getTimezoneOffset();
+now.setMinutes(time_offset);
+datetime.value = now.toISOString().slice(0, 16);
 
 onchange = (e) => {
     if (fileInput.files.length > 0){
@@ -43,18 +42,16 @@ onchange = (e) => {
             // get time from default Knox file name
             let time_str = file_name.split("_").slice(-1);
             // moment libary added in html template
-            console.log(time_str)
-            let time_of_creation = moment(time_str, 'YYYY-MM-DD HH.mm.ss').toString().slice(0, 16);
-            console.log(time_of_creation)
+            let time_of_creation = moment(time_str, 'YYYY-MM-DD HH.mm.ss').format("YYYY-MM-DDTkk:mm").toString();
             datetime.value = time_of_creation
             filetype.value = "knox";
         } else {
             filetype.value === 'unknown';
         }
-
-        datetime.type = filetype.value === "knox" ? 'datetime-local' : 'hidden';        
-        submit.disabled = filetype.value === "unknown" ? true :  false;
     }
+
+    datetime.type = filetype.value === "knox" ? 'datetime-local' : 'hidden';
+    submit.disabled = filetype.value === "unknown" || fileInput.files.length < 1 ? true : false;
 };
 `
 

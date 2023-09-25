@@ -8,7 +8,7 @@ const Node = {
       "t": "set",
       "p": "payload",
       "pt": "msg",
-      "to": "payload.\t{\t    \"id\": $.\"IMEI / MEID\",\t    \"sidst_set\": $.\"Last Seen\",\t    \"sidste_lokation\": $trim($substringBefore($.\"Last Location\", \"(\")),\t    \"tid_sidste_lokation\":$substring($substringAfter($.\"Last Location\", \"(\"), 0, 23)\t}",
+      "to": "payload.\t{\t    \"id\": $.\"IMEI / MEID\",\t    \"sidst_set\": $fromMillis($toMillis($pad($flowContext(\"datetime\"), 19, \":00\")) - (function($num, $unit){$unit = \"m\" ? $num * 60 * 1000 : $unit = \"h\" ?  $num * 60 * 60 * 1000 : $unit = \"d\" ? $num * 24 * 60 * 60 * 1000 : 365 * 24 * 60 * 60 * 1000}($number($substring($.\"Last Seen\", 0, $length($.\"Last Seen\")-1)), $substring($.\"Last Seen\", $length($.\"Last Seen\")-1, 1)))),\t    \"latitude\": $.\"Last Location\" ? $number($split($trim($substringBefore($.\"Last Location\", \"(\")),\",\")[0]) : null,\t    \"longitude\": $.\"Last Location\" ? $number($trim($split($trim($substringBefore($.\"Last Location\", \"(\")),\",\")[1])) : null,\t    \"tid_sidste_lokation\": $.\"Last Location\" ? $split($substring($substringAfter($.\"Last Location\", \"(\"), 0, 23), \" \")[0] & \"T\" & $split($substring($substringAfter($.\"Last Location\", \"(\"), 0, 23), \" \")[1] &\".000Z\" : null\t}",
       "tot": "jsonata"
     }
   ],
@@ -17,12 +17,12 @@ const Node = {
   "from": "",
   "to": "",
   "reg": false,
-  "x": 510,
-  "y": 520,
+  "x": 530,
+  "y": 360,
   "wires": [
     []
   ],
-  "_order": 97
+  "_order": 95
 }
 
 module.exports = Node;

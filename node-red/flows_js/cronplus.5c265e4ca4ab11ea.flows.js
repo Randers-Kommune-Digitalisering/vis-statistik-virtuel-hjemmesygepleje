@@ -2,6 +2,7 @@ const Node = {
   "id": "5c265e4ca4ab11ea",
   "type": "cronplus",
   "z": "971a7ae6df987a48",
+  "d": true,
   "g": "616fd052c81e52cc",
   "name": "Scheduled run",
   "outputField": "payload",

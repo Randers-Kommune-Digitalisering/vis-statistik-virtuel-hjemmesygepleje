@@ -3,34 +3,27 @@ const Node = {
   "type": "change",
   "z": "39989dadda5c9a15",
   "g": "8442dad57efd375b",
-  "name": "sæt fil, navn, dato og tid",
+  "name": "sæt fil, type, dato og tid",
   "rules": [
     {
       "t": "set",
-      "p": "payload",
+      "p": "file",
       "pt": "msg",
       "to": "msg.req.files[0].buffer.toString()",
       "tot": "jsonata"
     },
     {
       "t": "set",
-      "p": "name",
+      "p": "filetype",
       "pt": "msg",
-      "to": "req.files[0].originalname",
+      "to": "req.body.filetype",
       "tot": "msg"
     },
     {
       "t": "set",
-      "p": "date",
-      "pt": "msg",
-      "to": "req.body.date",
-      "tot": "msg"
-    },
-    {
-      "t": "set",
-      "p": "time",
-      "pt": "msg",
-      "to": "req.body.time",
+      "p": "datetime",
+      "pt": "flow",
+      "to": "req.body.datetime",
       "tot": "msg"
     },
     {
@@ -53,7 +46,7 @@ const Node = {
       "5ef7e76e41c4b1fe"
     ]
   ],
-  "_order": 92
+  "_order": 90
 }
 
 module.exports = Node;

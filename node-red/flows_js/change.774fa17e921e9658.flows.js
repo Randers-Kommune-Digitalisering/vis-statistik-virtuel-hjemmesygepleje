@@ -19,6 +19,18 @@ const Node = {
       "t": "delete",
       "p": "errMsgUser",
       "pt": "msg"
+    },
+    {
+      "t": "set",
+      "p": "payload",
+      "pt": "msg",
+      "to": "file",
+      "tot": "msg"
+    },
+    {
+      "t": "delete",
+      "p": "file",
+      "pt": "msg"
     }
   ],
   "action": "",
@@ -33,7 +45,7 @@ const Node = {
       "1c2683a414560e7b"
     ]
   ],
-  "_order": 94
+  "_order": 92
 }
 
 module.exports = Node;

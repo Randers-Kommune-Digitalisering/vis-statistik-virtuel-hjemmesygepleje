@@ -4,14 +4,13 @@ const Node = {
   "z": "39989dadda5c9a15",
   "name": "Mangler!",
   "info": "",
-  "x": 1120,
-  "y": 380,
+  "x": 1660,
+  "y": 420,
   "wires": [],
-  "_order": 82
+  "_order": 112
 }
 
 Node.info = `
- - Tilføj dato til Knox data (til beregning af sidst set dato/tid
  - Validere data
  - Ændre hvordan lokation data er stored
  - Error logging
