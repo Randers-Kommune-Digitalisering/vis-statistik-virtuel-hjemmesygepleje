@@ -12,11 +12,6 @@ const Node = {
     },
     {
       "t": "delete",
-      "p": "res",
-      "pt": "msg"
-    },
-    {
-      "t": "delete",
       "p": "errMsgUser",
       "pt": "msg"
     },
@@ -38,7 +33,7 @@ const Node = {
   "from": "",
   "to": "",
   "reg": false,
-  "x": 1140,
+  "x": 1060,
   "y": 260,
   "wires": [
     [
