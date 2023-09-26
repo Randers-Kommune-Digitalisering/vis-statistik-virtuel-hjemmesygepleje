@@ -3,7 +3,7 @@ const Node = {
   "type": "change",
   "z": "39989dadda5c9a15",
   "g": "11c06edd8b070ea6",
-  "name": "sæt tablet SQL",
+  "name": "sæt tablet",
   "rules": [
     {
       "t": "move",
@@ -18,14 +18,14 @@ const Node = {
   "from": "",
   "to": "",
   "reg": false,
-  "x": 920,
+  "x": 900,
   "y": 380,
   "wires": [
     [
-      "e9305c3966c0f0ec"
+      "3bb28f11aade4b81"
     ]
   ],
-  "_order": 117
+  "_order": 118
 }
 
 module.exports = Node;

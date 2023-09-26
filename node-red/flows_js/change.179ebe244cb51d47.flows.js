@@ -9,7 +9,7 @@ const Node = {
       "t": "set",
       "p": "payload",
       "pt": "msg",
-      "to": "payload.\t{\t    \"id\": CallId,\t    \"enhed\": $.\"Organisatorisk enhed\", \t    \"besvaret\": $contains(Slutresultat, \"Opkald besvare\"),\t    \"varighed\": $number($substring(Varighed,6)) +  $number($substring(Varighed, 3,2))*60 + $number($substring(Varighed,0,2))*60*60,\t    \"fra\": $contains($.\"Opkald fra\", \"Medarbejder\") ? \"medarbejder\" : \"borger\",\t    \"til\": $contains($.\"Opkald til\", \"Medarbejder\") ? \"medarbejder\" : \"borger\"\t}",
+      "to": "payload.\t{\t    \"id\": CallId,\t    \"enhed\": $.\"Organisatorisk enhed\", \t    \"besvaret\": $contains(Slutresultat, \"Opkald besvare\"),\t    \"tidspunkt\":$fromMillis($toMillis($.\"Starttidspunkt\", '[D01]-[M01]-[Y0001] [H#1]:[m01]')) ,\t    \"varighed\": $number($substring(Varighed,6)) +  $number($substring(Varighed, 3,2))*60 + $number($substring(Varighed,0,2))*60*60,\t    \"fra\": $contains($.\"Opkald fra\", \"Medarbejder\") ? \"medarbejder\" : \"borger\",\t    \"til\": $contains($.\"Opkald til\", \"Medarbejder\") ? \"medarbejder\" : \"borger\"\t}",
       "tot": "jsonata"
     }
   ],
@@ -25,7 +25,7 @@ const Node = {
       "2eeb8241fa47f222"
     ]
   ],
-  "_order": 99
+  "_order": 112
 }
 
 module.exports = Node;

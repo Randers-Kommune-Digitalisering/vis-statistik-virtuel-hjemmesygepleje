@@ -17,7 +17,7 @@ const Node = {
       "f9b56a0aca89a817"
     ]
   ],
-  "_order": 115
+  "_order": 117
 }
 
 Node.func = async function (node, msg, RED, context, flow, global, env, util) {
@@ -34,7 +34,7 @@ Node.func = async function (node, msg, RED, context, flow, global, env, util) {
   for (let i = 0; i < msg.payload.length; i++) {
       // Only add location if it has data
       if (msg.payload[i].latitude && msg.payload[i].longitude) {
-          msg.sql_lokation += `('${msg.payload[i].tid_sidste_lokation}', ${msg.payload[i].latitude},${msg.payload[i].longitude}, '${msg.payload[i].id}')`;
+          msg.sql_lokation += `('${msg.payload[i].tid_sidste_lokation}',${msg.payload[i].latitude},${msg.payload[i].longitude},'${msg.payload[i].id}')`;
           if (i < msg.payload.length - 1) msg.sql_lokation += ',';
       }
   }

@@ -14,10 +14,10 @@ const Node = {
   "y": 700,
   "wires": [
     [
-      "e0b63662b8bbb8db"
+      "9be36ce2a03bc27d"
     ]
   ],
-  "_order": 110
+  "_order": 102
 }
 
 Node.template = `
@@ -27,9 +27,9 @@ CREATE TABLE IF NOT EXISTS {{flow.location_table}} (
   latitude DECIMAL(8,6),
   longitude DECIMAL(9,6),
   tablet_id CHAR(15),
-  CONSTRAINT lokation_id PRIMARY KEY (id),
+  PRIMARY KEY (id),
   FOREIGN KEY (tablet_id) REFERENCES tablet(id)
-);
+)
 `
 
 module.exports = Node;

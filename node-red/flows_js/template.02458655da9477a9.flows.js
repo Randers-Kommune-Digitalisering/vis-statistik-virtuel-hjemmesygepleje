@@ -14,17 +14,17 @@ const Node = {
   "y": 640,
   "wires": [
     [
-      "55c213b8122a50a2"
+      "d826af94fc94f8bc"
     ]
   ],
-  "_order": 109
+  "_order": 101
 }
 
 Node.template = `
 CREATE TABLE IF NOT EXISTS {{flow.tablet_table}} (
   id CHAR(15) NOT NULL,
   sidst_set TIMESTAMP,
-  CONSTRAINT tablet_id PRIMARY KEY (id)
+  PRIMARY KEY (id)
 );
 `
 

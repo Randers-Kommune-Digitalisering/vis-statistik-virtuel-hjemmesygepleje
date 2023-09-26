@@ -14,17 +14,17 @@ const Node = {
   "y": 420,
   "wires": [
     [
-      "45c633edb40f2552"
+      "3bb28f11aade4b81"
     ]
   ],
-  "_order": 111
+  "_order": 116
 }
 
 Node.func = async function (node, msg, RED, context, flow, global, env, util) {
   const table = flow.get("call_table");
   msg.sql = `INSERT IGNORE INTO ${table} VALUES `
   for (let i = 0; i < msg.payload.length; i++) {
-      msg.sql += `('${msg.payload[i].id}','${msg.payload[i].enhed}',${msg.payload[i].besvaret},${msg.payload[i].varighed},'${msg.payload[i].fra}', '${msg.payload[i].til}')`;
+      msg.sql += `('${msg.payload[i].id}','${msg.payload[i].enhed}',${msg.payload[i].besvaret},'${msg.payload[i].tidspunkt}',${msg.payload[i].varighed},'${msg.payload[i].fra}', '${msg.payload[i].til}')`;
       if(i<msg.payload.length-1) msg.sql += ',';
       
   }

@@ -3,7 +3,7 @@ const Node = {
   "type": "change",
   "z": "39989dadda5c9a15",
   "g": "11c06edd8b070ea6",
-  "name": "sæt lokation SQL",
+  "name": "sæt lokation",
   "rules": [
     {
       "t": "move",
@@ -18,14 +18,14 @@ const Node = {
   "from": "",
   "to": "",
   "reg": false,
-  "x": 930,
+  "x": 1110,
   "y": 480,
   "wires": [
     [
-      "94b8bcafa3e076c8"
+      "3bb28f11aade4b81"
     ]
   ],
-  "_order": 118
+  "_order": 119
 }
 
 module.exports = Node;

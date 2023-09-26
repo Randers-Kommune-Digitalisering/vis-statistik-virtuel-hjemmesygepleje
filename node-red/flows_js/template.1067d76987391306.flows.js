@@ -14,10 +14,10 @@ const Node = {
   "y": 580,
   "wires": [
     [
-      "1988eae1306cbe10"
+      "d826af94fc94f8bc"
     ]
   ],
-  "_order": 108
+  "_order": 100
 }
 
 Node.template = `
@@ -25,10 +25,11 @@ CREATE TABLE IF NOT EXISTS {{flow.call_table}} (
   id CHAR(36) NOT NULL,
   enhed TINYTEXT,
   besvaret TINYINT(1),
+  tidspunkt TIMESTAMP,
   varighed INT UNSIGNED,
   fra ENUM('borger', 'medarbejder'),
   til ENUM('borger', 'medarbejder'),
-  CONSTRAINT opkald_id PRIMARY KEY (id)
+  PRIMARY KEY (id)
 );
 `
 
