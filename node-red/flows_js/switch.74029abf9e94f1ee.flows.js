@@ -1,35 +1,37 @@
 const Node = {
-  "id": "f5bfde136b50bdfc",
+  "id": "74029abf9e94f1ee",
   "type": "switch",
   "z": "39989dadda5c9a15",
-  "g": "8442dad57efd375b",
-  "name": "antal filer",
-  "property": "req.files.length",
+  "g": "11c06edd8b070ea6",
+  "name": "tablet opdateret?",
+  "property": "payload.affectedRows",
   "propertyType": "msg",
   "rules": [
     {
-      "t": "eq",
+      "t": "lt",
       "v": "1",
       "vt": "num"
     },
     {
-      "t": "else"
+      "t": "gt",
+      "v": "0",
+      "vt": "num"
     }
   ],
   "checkall": "true",
   "repair": false,
   "outputs": 2,
-  "x": 280,
-  "y": 220,
+  "x": 930,
+  "y": 420,
   "wires": [
     [
-      "e7fe4e8ef1ed1761"
+      "926fec043050794d"
     ],
     [
-      "0d1d8f61580ad039"
+      "7fb8cc5227d440e6"
     ]
   ],
-  "_order": 90
+  "_order": 124
 }
 
 module.exports = Node;

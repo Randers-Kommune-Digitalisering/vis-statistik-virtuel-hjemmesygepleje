@@ -1,7 +1,7 @@
 const Node = {
   "id": "d4c4c4565d1e740c",
   "type": "subflow",
-  "name": "Database connector",
+  "name": "Database-forbindelse",
   "info": "",
   "category": "",
   "in": [

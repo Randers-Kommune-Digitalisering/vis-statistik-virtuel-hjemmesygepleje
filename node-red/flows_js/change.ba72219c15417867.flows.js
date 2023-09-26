@@ -2,6 +2,7 @@ const Node = {
   "id": "ba72219c15417867",
   "type": "change",
   "z": "39989dadda5c9a15",
+  "g": "11c06edd8b070ea6",
   "name": "konverter knox data",
   "rules": [
     {
@@ -17,14 +18,14 @@ const Node = {
   "from": "",
   "to": "",
   "reg": false,
-  "x": 530,
-  "y": 360,
+  "x": 490,
+  "y": 380,
   "wires": [
     [
       "c52431f10d8337a8"
     ]
   ],
-  "_order": 95
+  "_order": 100
 }
 
 module.exports = Node;

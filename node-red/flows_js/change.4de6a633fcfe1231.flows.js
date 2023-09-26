@@ -2,6 +2,7 @@ const Node = {
   "id": "4de6a633fcfe1231",
   "type": "change",
   "z": "39989dadda5c9a15",
+  "g": "11c06edd8b070ea6",
   "name": "sæt fejl",
   "rules": [
     {
@@ -10,6 +11,13 @@ const Node = {
       "pt": "msg",
       "to": "Unknown filetype",
       "tot": "str"
+    },
+    {
+      "t": "set",
+      "p": "errMsgUser",
+      "pt": "msg",
+      "to": "Ukendt filtype",
+      "tot": "str"
     }
   ],
   "action": "",
@@ -17,14 +25,14 @@ const Node = {
   "from": "",
   "to": "",
   "reg": false,
-  "x": 500,
-  "y": 440,
+  "x": 460,
+  "y": 460,
   "wires": [
     [
-      "b8c349d1deabbab2"
+      "5a906997cafee489"
     ]
   ],
-  "_order": 101
+  "_order": 105
 }
 
 module.exports = Node;

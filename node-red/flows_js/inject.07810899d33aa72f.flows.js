@@ -2,6 +2,7 @@ const Node = {
   "id": "07810899d33aa72f",
   "type": "inject",
   "z": "39989dadda5c9a15",
+  "g": "65dc7d0c31d8b4a7",
   "name": "Kør een gang ved deploy",
   "props": [],
   "repeat": "",
@@ -9,14 +10,14 @@ const Node = {
   "once": true,
   "onceDelay": "7",
   "topic": "",
-  "x": 170,
+  "x": 190,
   "y": 580,
   "wires": [
     [
-      "1067d76987391306"
+      "43ff0e524b17db13"
     ]
   ],
-  "_order": 103
+  "_order": 107
 }
 
 module.exports = Node;

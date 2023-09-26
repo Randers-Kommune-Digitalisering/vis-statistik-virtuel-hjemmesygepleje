@@ -2,6 +2,7 @@ const Node = {
   "id": "179ebe244cb51d47",
   "type": "change",
   "z": "39989dadda5c9a15",
+  "g": "11c06edd8b070ea6",
   "name": "konverter vitacomm data",
   "rules": [
     {
@@ -17,14 +18,14 @@ const Node = {
   "from": "",
   "to": "",
   "reg": false,
-  "x": 550,
-  "y": 400,
+  "x": 510,
+  "y": 420,
   "wires": [
     [
       "2eeb8241fa47f222"
     ]
   ],
-  "_order": 94
+  "_order": 99
 }
 
 module.exports = Node;

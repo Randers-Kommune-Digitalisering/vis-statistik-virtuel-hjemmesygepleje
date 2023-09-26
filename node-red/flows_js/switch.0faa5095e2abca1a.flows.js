@@ -2,6 +2,7 @@ const Node = {
   "id": "0faa5095e2abca1a",
   "type": "switch",
   "z": "39989dadda5c9a15",
+  "g": "11c06edd8b070ea6",
   "name": "",
   "property": "filetype",
   "propertyType": "msg",
@@ -23,8 +24,8 @@ const Node = {
   "checkall": "false",
   "repair": false,
   "outputs": 3,
-  "x": 330,
-  "y": 380,
+  "x": 290,
+  "y": 400,
   "wires": [
     [
       "ba72219c15417867"
@@ -36,7 +37,7 @@ const Node = {
       "4de6a633fcfe1231"
     ]
   ],
-  "_order": 99
+  "_order": 104
 }
 
 module.exports = Node;

@@ -2,6 +2,7 @@ const Node = {
   "id": "2eeb8241fa47f222",
   "type": "function",
   "z": "39989dadda5c9a15",
+  "g": "11c06edd8b070ea6",
   "name": "byg SQL",
   "func": "",
   "outputs": 1,
@@ -9,16 +10,19 @@ const Node = {
   "initialize": "",
   "finalize": "",
   "libs": [],
-  "x": 760,
-  "y": 400,
+  "x": 720,
+  "y": 420,
   "wires": [
-    []
+    [
+      "45c633edb40f2552"
+    ]
   ],
-  "_order": 108
+  "_order": 111
 }
 
 Node.func = async function (node, msg, RED, context, flow, global, env, util) {
-  msg.sql = "INSERT IGNORE INTO opkald VALUES "
+  const table = flow.get("call_table");
+  msg.sql = `INSERT IGNORE INTO ${table} VALUES `
   for (let i = 0; i < msg.payload.length; i++) {
       msg.sql += `('${msg.payload[i].id}','${msg.payload[i].enhed}',${msg.payload[i].besvaret},${msg.payload[i].varighed},'${msg.payload[i].fra}', '${msg.payload[i].til}')`;
       if(i<msg.payload.length-1) msg.sql += ',';
