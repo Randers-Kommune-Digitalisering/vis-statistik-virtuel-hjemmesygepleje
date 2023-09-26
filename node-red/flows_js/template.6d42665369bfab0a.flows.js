@@ -39,11 +39,13 @@ onchange = (e) => {
         if (file_name.includes('video')) {
             filetype.value = 'vitacomm';
         } else if (file_name.includes('Device_List')) {
+            /* Moment not served when deployed - disabling for now
             // get time from default Knox file name
             let time_str = file_name.split("_").slice(-1);
             // moment libary added in html template
             let time_of_creation = moment(time_str, 'YYYY-MM-DD HH.mm.ss').format("YYYY-MM-DDTkk:mm").toString();
             datetime.value = time_of_creation
+            */
             filetype.value = "knox";
         } else {
             filetype.value === 'unknown';
