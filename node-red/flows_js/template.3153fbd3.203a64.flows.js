@@ -21,10 +21,9 @@ const Node = {
 }
 
 Node.template = `
-<!-- moment libary made available with httpstatic in settings.js file, the libary is located in node-red/scripts -->
-<!-- <script src="moment-with-locales.min.js"></script> -->
-<!-- <script src="moment-timezone-with-data.js"></script> -->
-<!-- monent disabled for now because it it not served when deployed to kubernetes -->
+<!-- day.js libary -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/plugin/customParseFormat.min.js"></script> -->
 
 <h1>Upload en fil her:</h1>
 

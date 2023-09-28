@@ -24,6 +24,9 @@ Node.template = `
 CREATE TABLE IF NOT EXISTS {{flow.tablet_table}} (
   id CHAR(15) NOT NULL,
   sidst_set TIMESTAMP,
+  latitude DECIMAL(8,6),
+  longitude DECIMAL(9,6),
+  tid_sidste_lokation TIMESTAMP,
   PRIMARY KEY (id)
 );
 `

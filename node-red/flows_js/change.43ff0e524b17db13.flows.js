@@ -21,13 +21,6 @@ const Node = {
     },
     {
       "t": "set",
-      "p": "location_table",
-      "pt": "flow",
-      "to": "lokation",
-      "tot": "str"
-    },
-    {
-      "t": "set",
       "p": "setup",
       "pt": "msg",
       "to": "true",
@@ -44,10 +37,10 @@ const Node = {
   "wires": [
     [
       "1067d76987391306",
-      "a4ae6e151f624e40"
+      "02458655da9477a9"
     ]
   ],
-  "_order": 105
+  "_order": 104
 }
 
 module.exports = Node;
