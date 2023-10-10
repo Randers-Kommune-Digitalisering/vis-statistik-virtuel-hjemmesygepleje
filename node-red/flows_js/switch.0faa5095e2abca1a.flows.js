@@ -18,26 +18,42 @@ const Node = {
       "vt": "str"
     },
     {
+      "t": "eq",
+      "v": "borgere",
+      "vt": "str"
+    },
+    {
+      "t": "eq",
+      "v": "skærme",
+      "vt": "str"
+    },
+    {
       "t": "else"
     }
   ],
   "checkall": "false",
   "repair": false,
-  "outputs": 3,
+  "outputs": 5,
   "x": 290,
-  "y": 400,
+  "y": 460,
   "wires": [
     [
       "ba72219c15417867"
     ],
     [
-      "179ebe244cb51d47"
+      "f516441356147238"
+    ],
+    [
+      "c478ae846b0e472c"
+    ],
+    [
+      "882db9b4a83ac78a"
     ],
     [
       "4de6a633fcfe1231"
     ]
   ],
-  "_order": 109
+  "_order": 107
 }
 
 module.exports = Node;

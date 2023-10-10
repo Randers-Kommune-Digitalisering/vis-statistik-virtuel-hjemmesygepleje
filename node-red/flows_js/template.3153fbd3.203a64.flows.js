@@ -33,8 +33,11 @@ Node.template = `
     <option value="unknown">Ukendt</option>
     <option value="knox">Knox</option>
     <option value="vitacomm">Vitacomm</option>
+    <option value="borgere">Borgere</option>
+    <option value="skærme">Skærme</option>
   </select>
     <input id="datetime" type="hidden" name="datetime">
+    <input id="week" type="hidden" name="week">
     <input id="file" type="file" name="file" accept=".csv"/>
     <input disabled type="submit" id="submit" value="Indsend">
 </form>

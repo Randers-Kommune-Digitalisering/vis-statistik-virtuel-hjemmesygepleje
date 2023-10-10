@@ -5,9 +5,9 @@ const Node = {
   "name": "Debug stuff",
   "info": "",
   "x": 210,
-  "y": 800,
+  "y": 860,
   "wires": [],
-  "_order": 128
+  "_order": 125
 }
 
 module.exports = Node;

@@ -23,6 +23,7 @@ const Node = {
 Node.template = `
 const fileInput = document.getElementById('file');
 const datetime = document.getElementById('datetime');
+const week = document.getElementById('week');
 const filetype = document.getElementById('filetype');
 const submit = document.getElementById('submit');
 
@@ -45,12 +46,17 @@ onchange = (e) => {
             let time_of_creation = moment(time_str, 'YYYY-MM-DD HH.mm.ss').format("YYYY-MM-DDTkk:mm").toString();
             datetime.value = time_of_creation
             filetype.value = "knox";
-        } else {
+        } else if (file_name.includes('borger')) {
+            filetype.value = "borgere";
+        } else if (file_name.includes('skærm')) {
+            filetype.value = "skærme";
+        }else {
             filetype.value === 'unknown';
         }
     }
 
     datetime.type = filetype.value === "knox" ? 'datetime-local' : 'hidden';
+    week.type = filetype.value === "borgere" || filetype.value === "skærme"? 'week' : 'hidden';
     submit.disabled = filetype.value === "unknown" || fileInput.files.length < 1 ? true : false;
 };
 `

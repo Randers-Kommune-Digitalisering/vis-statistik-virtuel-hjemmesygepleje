@@ -9,14 +9,28 @@ const Node = {
       "t": "set",
       "p": "call_table",
       "pt": "flow",
-      "to": "opkald",
+      "to": "video_calls",
       "tot": "str"
     },
     {
       "t": "set",
-      "p": "tablet_table",
+      "p": "tablet_knox_table",
       "pt": "flow",
-      "to": "tablet",
+      "to": "tablets_knox",
+      "tot": "str"
+    },
+    {
+      "t": "set",
+      "p": "citizen_table",
+      "pt": "flow",
+      "to": "citizens",
+      "tot": "str"
+    },
+    {
+      "t": "set",
+      "p": "tablet_nexus_table",
+      "pt": "flow",
+      "to": "tablets_nexus",
       "tot": "str"
     },
     {
@@ -32,12 +46,14 @@ const Node = {
   "from": "",
   "to": "",
   "reg": false,
-  "x": 420,
-  "y": 580,
+  "x": 400,
+  "y": 640,
   "wires": [
     [
+      "02458655da9477a9",
       "1067d76987391306",
-      "02458655da9477a9"
+      "c18499fa36362788",
+      "9e4542992d182d44"
     ]
   ],
   "_order": 104

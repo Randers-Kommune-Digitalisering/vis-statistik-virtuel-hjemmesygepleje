@@ -30,6 +30,8 @@
     ],
     "dependencies": {
         "@yousolution/node-red-contrib-you-ftp-sftp": "~1.9.2",
+        "lib-anonymization": "^1.0.15",
+        "moment": "^2.29.4",
         "node-red": "3.0.2",
         "node-red-contrib-cron-plus": "~1.5.7",
         "node-red-contrib-csvtojson": "~0.0.2",

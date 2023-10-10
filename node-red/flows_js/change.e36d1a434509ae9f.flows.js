@@ -28,6 +28,13 @@ const Node = {
     },
     {
       "t": "set",
+      "p": "week",
+      "pt": "flow",
+      "to": "req.body.week",
+      "tot": "msg"
+    },
+    {
+      "t": "set",
       "p": "errMsgUser",
       "pt": "msg",
       "to": "false",
