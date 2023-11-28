@@ -16,19 +16,21 @@ const Node = {
       "3bb28f11aade4b81"
     ]
   ],
-  "_order": 143
+  "_order": 146
 }
 
 Node.func = async function (node, msg, RED, context, flow, global, env, util) {
   
-  const table = flow.get("tablet_nexus_table");
-  msg.sql = `INSERT IGNORE INTO ${table}(enhed, udlaante, ledige, uge) VALUES `
-  for (let i = 0; i < msg.payload.length; i++) {
-    msg.sql += `('${msg.payload[i].enhed}','${msg.payload[i].udlaante}', '${msg.payload[i].ledige}', '${msg.payload[i].uge}')`;
-    if (i < msg.payload.length - 1) msg.sql += ',';
-  
-  }
-  return msg
+    
+    const table = flow.get("tablet_nexus_table");
+    msg.sql = `INSERT IGNORE INTO ${table}(enhed, udlaante, ledige, uge) VALUES `
+    for (let i = 0; i < msg.payload.length; i++) {
+      msg.sql += `('${msg.payload[i].enhed}','${msg.payload[i].udlaante}', '${msg.payload[i].ledige}', '${msg.payload[i].uge}')`;
+      if (i < msg.payload.length - 1) msg.sql += ',';
+    
+    }
+    return msg
+    
   
 }
 

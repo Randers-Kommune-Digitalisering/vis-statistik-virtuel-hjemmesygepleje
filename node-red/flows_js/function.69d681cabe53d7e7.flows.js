@@ -22,17 +22,19 @@ const Node = {
       "acc2ace281fe9c86"
     ]
   ],
-  "_order": 152
+  "_order": 155
 }
 
 Node.func = async function (node, msg, RED, context, flow, global, env, util, moment) {
-  msg.payload = msg.payload.map(item => {
-      const updatedItems = { ...item };
-      updatedItems["uge"] = moment(item["tidspunkt"]).year() + "-W" + moment(item["tidspunkt"]).isoWeek();
-      return updatedItems;
-  });
   
-  return msg;
+    msg.payload = msg.payload.map(item => {
+        const updatedItems = { ...item };
+        updatedItems["uge"] = moment(item["tidspunkt"]).year() + "-W" + moment(item["tidspunkt"]).isoWeek();
+        return updatedItems;
+    });
+    
+    return msg;
+  
 }
 
 module.exports = Node;
