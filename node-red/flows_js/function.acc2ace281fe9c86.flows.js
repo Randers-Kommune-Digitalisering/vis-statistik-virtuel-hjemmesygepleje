@@ -17,20 +17,22 @@ const Node = {
       "3bb28f11aade4b81"
     ]
   ],
-  "_order": 142
+  "_order": 144
 }
 
 Node.func = async function (node, msg, RED, context, flow, global, env, util) {
   
     
-    const table = flow.get("call_table");
-      msg.sql = `INSERT IGNORE INTO ${table} VALUES `
-      for (let i = 0; i < msg.payload.length; i++) {
-        msg.sql += `('${msg.payload[i].id}','${msg.payload[i].enhed}',${msg.payload[i].besvaret},'${msg.payload[i].tidspunkt}','${msg.payload[i].uge}','${msg.payload[i].varighed}','${msg.payload[i].fra}', '${msg.payload[i].til}','${msg.payload[i].navn}')`;
-          if(i<msg.payload.length-1) msg.sql += ',';
-          
-      }
-      return msg
+      
+      const table = flow.get("call_table");
+        msg.sql = `INSERT IGNORE INTO ${table} VALUES `
+        for (let i = 0; i < msg.payload.length; i++) {
+          msg.sql += `('${msg.payload[i].id}','${msg.payload[i].enhed}',${msg.payload[i].besvaret},'${msg.payload[i].tidspunkt}','${msg.payload[i].uge}','${msg.payload[i].varighed}','${msg.payload[i].fra}', '${msg.payload[i].til}','${msg.payload[i].navn}')`;
+            if(i<msg.payload.length-1) msg.sql += ',';
+            
+        }
+        return msg
+      
     
   
 }

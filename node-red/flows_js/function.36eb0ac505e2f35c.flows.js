@@ -17,14 +17,16 @@ const Node = {
       "1bcc5ea5062f24ba"
     ]
   ],
-  "_order": 160
+  "_order": 161
 }
 
 Node.func = async function (node, msg, RED, context, flow, global, env, util) {
-  let user = env.get("KNOX_USER");
-  let pass = env.get("KNOX_PASS");
+  
+  let user = env.get("KNOX_CLIENT");
+  let pass = env.get("KNOX_SECRET");
   msg.auth = user + ":" + pass;
   return msg;
+  
 }
 
 module.exports = Node;

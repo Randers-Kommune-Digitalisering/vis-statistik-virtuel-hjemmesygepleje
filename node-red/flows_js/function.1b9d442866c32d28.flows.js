@@ -10,19 +10,19 @@ const Node = {
   "initialize": "",
   "finalize": "",
   "libs": [],
-  "x": 260,
+  "x": 240,
   "y": 220,
   "wires": [
     [
-      "5faef195141dffea"
+      "37e7a50781e54f2b"
     ]
   ],
   "_order": 173
 }
 
 Node.func = async function (node, msg, RED, context, flow, global, env, util) {
-  msg.endDate = msg.payload;
-  msg.startDate = new Date(msg.payload).setDate(new Date(msg.payload).getDate() - 7);
+  msg.startTime = new Date(msg.time).setDate(new Date(msg.time).getDate() - 30);
+  msg.endTime = msg.time
   return msg;
 }
 

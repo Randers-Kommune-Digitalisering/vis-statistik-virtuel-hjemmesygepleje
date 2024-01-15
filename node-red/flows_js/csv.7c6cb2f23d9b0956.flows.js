@@ -14,11 +14,11 @@ const Node = {
   "strings": true,
   "include_empty_strings": false,
   "include_null_values": false,
-  "x": 270,
-  "y": 280,
+  "x": 670,
+  "y": 260,
   "wires": [
     [
-      "1763877df1c822c4"
+      "7a810cb7fc1cf90b"
     ]
   ],
   "_order": 170

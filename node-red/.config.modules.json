@@ -10,5 +10,11 @@
         "module": "lib-anonymization",
         "builtin": false,
         "known": false
+    },
+    "xlsx": {
+        "spec": "xlsx",
+        "module": "xlsx",
+        "builtin": false,
+        "known": false
     }
 }

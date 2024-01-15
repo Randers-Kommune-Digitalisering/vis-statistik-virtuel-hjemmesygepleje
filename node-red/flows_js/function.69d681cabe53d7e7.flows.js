@@ -9,12 +9,7 @@ const Node = {
   "noerr": 0,
   "initialize": "",
   "finalize": "",
-  "libs": [
-    {
-      "var": "moment",
-      "module": "moment"
-    }
-  ],
+  "libs": [],
   "x": 700,
   "y": 420,
   "wires": [
@@ -22,18 +17,20 @@ const Node = {
       "acc2ace281fe9c86"
     ]
   ],
-  "_order": 155
+  "_order": 157
 }
 
-Node.func = async function (node, msg, RED, context, flow, global, env, util, moment) {
+Node.func = async function (node, msg, RED, context, flow, global, env, util) {
   
-    msg.payload = msg.payload.map(item => {
-        const updatedItems = { ...item };
-        updatedItems["uge"] = moment(item["tidspunkt"]).year() + "-W" + moment(item["tidspunkt"]).isoWeek();
-        return updatedItems;
-    });
     
-    return msg;
+      msg.payload = msg.payload.map(item => {
+          const updatedItems = { ...item };
+          updatedItems["uge"] = moment(item["tidspunkt"]).year() + "-W" + moment(item["tidspunkt"]).isoWeek();
+          return updatedItems;
+      });
+      
+      return msg;
+    
   
 }
 

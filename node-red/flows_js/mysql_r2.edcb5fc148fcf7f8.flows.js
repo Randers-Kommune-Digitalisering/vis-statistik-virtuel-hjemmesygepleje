@@ -10,7 +10,7 @@ const Node = {
   "password": "",
   "sql": "",
   "port": "3306",
-  "pooling": true,
+  "pooling": false,
   "waitForConnections": true,
   "connectionLimit": "10",
   "queueTimeout": "10000",
@@ -21,7 +21,7 @@ const Node = {
       "05c7d3ab6247cfe9"
     ]
   ],
-  "_order": 48
+  "_order": 50
 }
 
 module.exports = Node;
