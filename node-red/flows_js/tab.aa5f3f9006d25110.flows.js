@@ -2,7 +2,7 @@ const Node = {
   "id": "aa5f3f9006d25110",
   "type": "tab",
   "label": "Hent data",
-  "disabled": false,
+  "disabled": true,
   "info": "",
   "env": [],
   "_order": 2

@@ -5,7 +5,7 @@ const Node = {
   "info": "",
   "in": [],
   "out": [],
-  "_order": 5
+  "_order": 6
 }
 
 module.exports = Node;
