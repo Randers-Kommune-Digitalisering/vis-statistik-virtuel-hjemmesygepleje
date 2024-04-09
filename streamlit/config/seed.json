@@ -1,0 +1,29 @@
+[
+  {
+    "target_class": "models:District",
+    "data": [
+      { "vitacomm_district": "Borgerteam Nordvest", "applikator_id": 24, "nexus_district": "Borgerteam Nordvest"},
+      { "vitacomm_district": "Borgerteam Sydvest", "applikator_id": 25, "nexus_district": "Borgerteam Sydvest"},
+      { "vitacomm_district": "Borgerteams", "applikator_id": 22, "nexus_district": "Borgerteam Sydvest"},
+      { "vitacomm_district": "Åbakken", "applikator_id": 19, "nexus_district": "Distrikt Åbakken" },
+      { "vitacomm_district": "Bakkegaarden", "applikator_id": 18, "nexus_district": "Distrikt Bakkegården" },
+      { "vitacomm_district": "Borupvænget", "applikator_id": 12, "nexus_district": "Distrikt Borupvænget" },
+      { "vitacomm_district": "Dronningborg", "applikator_id": 16, "nexus_district": "Distrikt Dronningborg" },
+      { "vitacomm_district": "Kollektivhuset/Hornbæk", "applikator_id": 13, "nexus_district": "Distrikt Kollektivhuset" },
+      { "vitacomm_district": "Kristrup/Vorup", "applikator_id": 9, "nexus_district": "Distrikt Kristrup-Vorup" },
+      { "vitacomm_district": "Langå", "applikator_id": 14, "nexus_district": "Distrikt Langå" },
+      { "vitacomm_district": "Lindevænget", "applikator_id": 8, "nexus_district": "Distrikt Tørvebryggen" },
+      { "vitacomm_district": "Lindevænget", "applikator_id":8, "nexus_district": "Distrikt Lindevænget"},
+      { "vitacomm_district": "Midtbyen", "applikator_id": 10, "nexus_district": "Distrikt Midtbyen" },
+      { "vitacomm_district": "Møllevang", "applikator_id": 17, "nexus_district": "Distrikt Møllevang" },
+      { "vitacomm_district": "Paderup/Assentoft", "applikator_id": 7, "nexus_district": "Distrikt Paderup-Assentoft" },
+      { "vitacomm_district": "Natcenter", "applikator_id": 23, "nexus_district": "Natcenter 8915 8833" },
+      { "vitacomm_district": "Plejecenter Bakkegaarden", "applikator_id": 26, "nexus_district": "Plejecenter Bakkegården" },
+      { "vitacomm_district": "Sygepleje nord", "applikator_id": 20, "nexus_district": "Sygeplejegrupper Nord" },
+      { "vitacomm_district": "Sygepleje syd", "applikator_id": 11, "nexus_district": "Sygeplejegrupper Syd" },
+      { "vitacomm_district": "Sygepleje vest", "applikator_id": 15, "nexus_district": "Sygeplejegrupper Vest" },
+      { "vitacomm_district": "Sundhed, Kultur og Omsorg", "applikator_id": 2, "nexus_district": "Intet distrikt" },
+      { "vitacomm_district": "Genoptræningscenter Randers", "applikator_id": 21, "nexus_district": "Intet distrikt" }
+    ]
+  }
+]
