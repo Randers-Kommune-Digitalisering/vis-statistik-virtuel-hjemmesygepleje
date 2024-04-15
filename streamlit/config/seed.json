@@ -23,7 +23,8 @@
       { "vitacomm_district": "Sygepleje syd", "applikator_id": 11, "nexus_district": "Sygeplejegrupper Syd" },
       { "vitacomm_district": "Sygepleje vest", "applikator_id": 15, "nexus_district": "Sygeplejegrupper Vest" },
       { "vitacomm_district": "Sundhed, Kultur og Omsorg", "applikator_id": 2, "nexus_district": "Intet distrikt" },
-      { "vitacomm_district": "Genoptræningscenter Randers", "applikator_id": 21, "nexus_district": "Intet distrikt" }
+      { "vitacomm_district": "Genoptræningscenter Randers", "applikator_id": 21, "nexus_district": "Intet distrikt" },
+      { "vitacomm_district": "Randers kommune", "applikator_id": 1, "nexus_district": "Intet distrikt" }
     ]
   }
 ]

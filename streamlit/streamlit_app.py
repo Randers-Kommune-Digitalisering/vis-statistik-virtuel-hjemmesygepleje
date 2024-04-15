@@ -1,11 +1,13 @@
-import gc
 import streamlit as st
+from st_pages import add_page_title, show_pages, Page, Section
 
-from st_pages import Page, Section, show_pages, add_indentation
+from utils.pages import add_logo
+
+st.set_page_config(page_icon="assets/favicon.ico", layout="wide")
 
 show_pages(
         [
-            Page("pages/home.py", "Forside"),
+            Page("streamlit_app.py", "Forside"),
 
             Section(name="Skærmbesøg"),
             Page("pages/restructure.py", "Omlægningsgrad"),
@@ -16,4 +18,5 @@ show_pages(
         ]
     )
 
-add_indentation()
+add_page_title()
+add_logo()
