@@ -19,11 +19,14 @@ def read_data(week_str):
     return get_calls_dataframe(week_str)
 
 def generate_pie_chart(dataframe, district):
+    title = district
+    if district == 'Randers Kommune':
+        district = None  
     df = pd.DataFrame({'Status': ['Besvarede', 'Ubesvarede'], 'Antal': list(answered_unanwsered_by_district(data, district))})
     df['Procent'] = ((df['Antal'] / sum(df['Antal'])) * 100)
     df['Procent'] =  df['Procent'].map('{:.2f}%'.format)
 
-    base = alt.Chart(df).encode(
+    base = alt.Chart(df, title=alt.TitleParams(title, anchor='start', offset=-20)).encode(
         theta="Antal:Q",
         color=alt.Color("Status:N", scale=alt.Scale(range=['#6f9460','#ba3c3c'])),
         order=alt.Order("Procent", sort='ascending'),
@@ -31,7 +34,7 @@ def generate_pie_chart(dataframe, district):
     )
 
     pie = base.mark_arc(outerRadius=140)
-    text = base.mark_text(radius=180, size=20).encode(text="Procent:N")
+    text = base.mark_text(radius=165, size=14).encode(text="Procent:N")
 
     return pie + text
 
@@ -61,9 +64,6 @@ def generate_bar_charts(dataframe):
 
     return by_amount, by_percentage
 
-#st.set_page_config(page_title="Opkald", page_icon="assets/favicon.ico", layout='wide')
-#st.markdown("# Opkald")
-
 district_selector_cont, duration_selector_cont = st.columns(2)
 
 with district_selector_cont:
@@ -76,16 +76,14 @@ with district_selector_cont:
 
 with duration_selector_cont:
     week = week_selector(get_last_week(), '2023-18')
-    data = read_data(week)
+    
+data = read_data(week)
 
 answered_district_cont, answered_all_cont, duration_cont = st.columns(3)
 
 answered_df = answered_unanwsered_all_districts(data)
 
 with answered_district_cont:
-    st.write(district) 
-    if district == 'Randers Kommune':
-        district = None       
     pie_chart = generate_pie_chart(data, district)
     st.altair_chart(pie_chart, use_container_width=True)
 

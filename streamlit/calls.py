@@ -2,7 +2,7 @@ import pandas as pd
 from datetime import timedelta
 
 from models import District, Call
-from database import get_calls, get_engine, pandas_insert_ignore
+from database import get_calls
 from utils.time import get_week_start_and_end, get_last_week, format_decimal_hours
 from utils.district import get_district_vitacomm, get_nexus_district
 

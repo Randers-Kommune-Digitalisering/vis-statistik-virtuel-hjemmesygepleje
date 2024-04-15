@@ -25,9 +25,6 @@ def generate_pie_chart(dataframe):
         tooltip=['Ydelse', 'Antal', 'Procent']
     )
 
-#st.set_page_config(page_title="Ydelser",  page_icon="assets/favicon.ico", layout='wide')
-#st.markdown("# Ydelser")
-
 services_screen, services_non_screen = read_data()
 
 district_cont, week_cont, all_time_cont = st.columns(3)

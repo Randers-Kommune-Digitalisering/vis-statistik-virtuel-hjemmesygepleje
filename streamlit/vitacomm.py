@@ -60,10 +60,10 @@ def get_call_log_api(days=30, start=None, end=None):
         raise Exception('Max date range is 30 days')
     
     params = {
-            'api_key': VITACOMM_API_KEY, 
-            'from': start_datetime.strftime('%Y-%m-%dT%H:%M:%S'),
-            'to': end_datetime.strftime('%Y-%m-%dT%H:%M:%S')
-            }
+        'api_key': VITACOMM_API_KEY, 
+        'from': start_datetime.strftime('%Y-%m-%dT%H:%M:%S'),
+        'to': end_datetime.strftime('%Y-%m-%dT%H:%M:%S')
+    }
 
     response = requests.get(VITACOMM_URL, params=params)
 

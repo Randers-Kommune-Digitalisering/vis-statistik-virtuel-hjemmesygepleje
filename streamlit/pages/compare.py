@@ -32,9 +32,6 @@ def read_data(week_str):
     all_df = all_df.set_index('Distrikt')
     return all_df[['Borgere med opkald', 'Borgere med planlagt skærmbesøg', 'Besvarede opkald', 'Planlagte skærmbesøg','Tid i opkald', 'Tid planlagte skærmbesøg']]
 
-#st.set_page_config(page_title="Skærmbesøg", page_icon="assets/favicon.ico", layout='wide')
-#st.markdown("# Skærmbesøg")
-
 week = week_selector(get_last_week(), '2024-07')
 
 stats = read_data(week)

@@ -65,10 +65,10 @@ class Service(Base):
         return f"Service(id={self.id!r}, district={self.district_id!r}, week={self.week!r}, name={self.name!r})"
     
 class Call(Base):
-    __tablename__ = "call"
+    __tablename__ = "call_log"
     id = Column(String(36), primary_key=True) #Uuid
     start_time = Column(DateTime)
-    end_time = Column(DateTime(0))
+    end_time = Column(DateTime)
     duration = Column(Time)
     end_reason = Column(String(30))
 
