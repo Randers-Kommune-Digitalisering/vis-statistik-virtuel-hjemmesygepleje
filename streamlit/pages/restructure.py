@@ -5,7 +5,7 @@ import pandas as pd
 from st_pages import add_page_title
 
 from stats import get_weekly_stats
-from calls import get_calls_dataframe, unique_citizens
+from call import get_calls_dataframe, unique_citizens
 from database import get_citizens, get_call_citizens
 from utils.time import get_last_week, get_weeks
 from utils.pages import week_selector, add_logo
@@ -15,7 +15,7 @@ add_page_title(layout="wide")
 add_logo()
 
 @st.cache_data
-def read_data(week_str):
+def read_data(week_str, callee_district=True):
     weekly_stats =  get_weekly_stats(week_str)
     
     if weekly_stats is None:
@@ -38,7 +38,7 @@ def read_data(week_str):
     #month_calls.rename(month_calls.name + '(30 dage)', inplace=True)
     #three_weeks_calls= unique_citizens(three_weeks_df)
     #three_weeks_calls.rename(three_weeks_calls.name + '(21 dage)', inplace=True)
-    fortnight_calls= unique_citizens(fortnight_df)
+    fortnight_calls= unique_citizens(fortnight_df, callee_district)
     fortnight_calls.rename(fortnight_calls.name + '(14 dage)', inplace=True)
     #weekly_calls = unique_citizens(week_df)
     #weekly_calls.rename(weekly_calls.name + '(7 dage)', inplace=True)
@@ -68,10 +68,10 @@ def read_nexus_data(start, end):
     return data
 
 @st.cache_data
-def read_vitacomm_data(start, end, district):
+def read_vitacomm_data(start, end, district, callee_distrct=True):
     district = None if district == 'Randers Kommune' else district
     weeks = get_weeks(start, end)
-    data = get_call_citizens(weeks, district=district)
+    data = get_call_citizens(weeks, district=district, callee_district=callee_distrct)
     return data
 
 def generate_sizes(dataframe, district, datatype):
@@ -141,12 +141,20 @@ def generate_graph(dataframe):
         selection
     )
 
-district_selectort_cont, week_selector_cont = st.columns(2)
+based_on_district_cont, district_selectort_cont, week_selector_cont = st.columns(3)
+
+with based_on_district_cont:
+    display = ("Baseret på medarbejder distrikt", "Baseret på borger distrikt")
+
+    options = (False, True)
+
+    based_on_district = st.selectbox("Data grundlag", options, format_func=lambda x: display[x])
+
 
 with week_selector_cont:
     week = week_selector(get_last_week(), '2024-07')
 
-data = read_data(week)
+data = read_data(week, based_on_district)
 
 time_interval = '14 dage'
 
@@ -190,7 +198,7 @@ districts = nexus['district'].unique()
 vitacomm_list = []
 for district in districts:
     district = None if district == 'Randers kommune' else district
-    vitacomm_list.append(read_vitacomm_data(start_week, end_week, district))
+    vitacomm_list.append(read_vitacomm_data(start_week, end_week, district, based_on_district))
 
 vitacomm = pd.concat(vitacomm_list)
 

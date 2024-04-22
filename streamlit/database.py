@@ -15,15 +15,9 @@ from utils.time import generate_start_and_end_datetime, get_last_week, get_fortn
 from config.logging import logger
 from config.settings import DB_USER, DB_PASS, DB_HOST, DB_PORT, DB_DATABASE, SEED_FILE
 
-engine = None
-session = None
-
 
 def get_engine():
-    global engine
-    if not engine:
-        engine = sqlalchemy.create_engine(f'mariadb+mariadbconnector://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_DATABASE}')
-    return engine
+    return sqlalchemy.create_engine(f'mariadb+mariadbconnector://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_DATABASE}')
 
 def create_db():
     Base.metadata.create_all(get_engine())
@@ -231,7 +225,7 @@ def get_citizens(weeks=None):
    
         return df
 
-def get_call_citizens(weeks, district=None):
+def get_call_citizens(weeks, district=None, callee_district=True):
     result = []
 
     with get_engine().connect() as conn:
@@ -248,7 +242,10 @@ def get_call_citizens(weeks, district=None):
                     AND NOT (start_time < '{start}' OR end_time > '{end}')
             """
             if district:
-                query = query + f"AND (callee_district_id = {district_id})"
+                if callee_district:
+                    query = query + f"AND (callee_district_id = {district_id})"
+                else:
+                    query = query + f"AND (caller_district_id = {district_id})"
             result.append((Session(conn).execute(text(query)).first()[0],) + (week,))
      
     df = pd.DataFrame(result, columns =['screen', 'week'])

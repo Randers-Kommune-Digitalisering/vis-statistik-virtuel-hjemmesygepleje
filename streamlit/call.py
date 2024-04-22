@@ -87,7 +87,7 @@ def average_duration_all_districts(dataframe):
     return durations_df
 
 
-def unique_citizens(dataframe):
+def unique_citizens(dataframe, callee_district=True):
     if isinstance(dataframe, pd.DataFrame):
         df = dataframe
     else:
@@ -99,7 +99,10 @@ def unique_citizens(dataframe):
     
     df = df[df['duration'] > timedelta(seconds=0)]
 
-    citizens_s = df.groupby('callee_district')['callee'].nunique().sort_values(ascending=False)
+    if callee_district:
+        citizens_s = df.groupby('callee_district')['callee'].nunique().sort_values(ascending=False)
+    else:
+        citizens_s = df.groupby('caller_district')['callee'].nunique().sort_values(ascending=False)
     citizens_s = pd.concat([citizens_s, pd.Series(df['callee'].nunique(), index = ['Randers Kommune'])])
     citizens_s.name = 'Borgere med opkald'
 
