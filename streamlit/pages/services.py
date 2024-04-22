@@ -64,24 +64,27 @@ with screen_all_cont:
             services_screen = services_screen.iloc[services_screen.index.get_level_values('district') == district]
         if not all_time:
             services_screen = services_screen.iloc[services_screen.index.get_level_values('week') == week]
-        
-        services_screen = services_screen.groupby(['name']).aggregate({'visits': 'sum'}).sort_values(['visits'], ascending=[0])
-        services_screen.rename(columns={ services_screen.columns[0]: "Antal" }, inplace = True)
-        services_screen['Procent'] = services_screen.apply(lambda col: (col / sum(col)) * 100)
-        services_screen['Procent'] =  services_screen['Procent'].map('{:.2f}%'.format)
 
-        chart_df = services_screen.reset_index().head(10)
-        chart_df.rename(columns={ chart_df.columns[0]: "Ydelse" }, inplace = True)
+        if services_screen.empty:
+             st.write('Intet data')
+        else:
+            services_screen = services_screen.groupby(['name']).aggregate({'visits': 'sum'}).sort_values(['visits'], ascending=[0])
+            services_screen.rename(columns={ services_screen.columns[0]: "Antal" }, inplace = True)
+            services_screen['Procent'] = services_screen.apply(lambda col: (col / sum(col)) * 100)
+            services_screen['Procent'] =  services_screen['Procent'].map('{:.2f}%'.format)
 
-        pie_chart = generate_pie_chart(chart_df)
-        
-        table_cont, chart_cont = st.columns(2)
+            chart_df = services_screen.reset_index().head(10)
+            chart_df.rename(columns={ chart_df.columns[0]: "Ydelse" }, inplace = True)
 
-        with table_cont:    
-            st.table(services_screen.head(10))
+            pie_chart = generate_pie_chart(chart_df)
+            
+            table_cont, chart_cont = st.columns(2)
 
-        with chart_cont:
-            st.altair_chart(pie_chart, use_container_width=True)
+            with table_cont:    
+                st.table(services_screen.head(10))
+
+            with chart_cont:
+                st.altair_chart(pie_chart, use_container_width=True)
 
 with non_screen_all_cont:
     title_string = f'#### Ikke Skærm ({district})' if all_time else f'#### Ikke Skærm ({district}) uge {week}' 
@@ -94,21 +97,24 @@ with non_screen_all_cont:
         if not all_time:
             services_non_screen = services_non_screen.iloc[services_non_screen.index.get_level_values('week') == week]
         
-        services_non_screen = services_non_screen.groupby(['name']).aggregate({'visits': 'sum'}).sort_values(['visits'], ascending=[0])
-        services_non_screen.rename(columns={ services_non_screen.columns[0]: "Antal" }, inplace = True)
-        services_non_screen['Procent'] = services_non_screen.apply(lambda col: (col / sum(col)) * 100)
-        services_non_screen['Procent'] =  services_non_screen['Procent'].map('{:.2f}%'.format)
+        if services_non_screen.empty:
+             st.write('Intet data')
+        else:
+            services_non_screen = services_non_screen.groupby(['name']).aggregate({'visits': 'sum'}).sort_values(['visits'], ascending=[0])
+            services_non_screen.rename(columns={ services_non_screen.columns[0]: "Antal" }, inplace = True)
+            services_non_screen['Procent'] = services_non_screen.apply(lambda col: (col / sum(col)) * 100)
+            services_non_screen['Procent'] =  services_non_screen['Procent'].map('{:.2f}%'.format)
 
-        chart_df = services_non_screen.reset_index().head(10)
-        chart_df.rename(columns={ chart_df.columns[0]: "Ydelse" }, inplace = True)
+            chart_df = services_non_screen.reset_index().head(10)
+            chart_df.rename(columns={ chart_df.columns[0]: "Ydelse" }, inplace = True)
 
-        pie_chart = generate_pie_chart(chart_df)
+            pie_chart = generate_pie_chart(chart_df)
 
-        table_cont, chart_cont = st.columns(2)
+            table_cont, chart_cont = st.columns(2)
 
-        with table_cont:
-            st.table(services_non_screen.head(10))
+            with table_cont:
+                st.table(services_non_screen.head(10))
 
-        with chart_cont:
-            st.altair_chart(pie_chart, use_container_width=True)
+            with chart_cont:
+                st.altair_chart(pie_chart, use_container_width=True)
 

@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 from st_pages import add_page_title
 
-from calls import get_calls_dataframe, answered_unanwsered_by_district, answered_unanwsered_all_districts, average_duration_all_districts
+from call import get_calls_dataframe, answered_unanwsered_by_district, answered_unanwsered_all_districts, average_duration_all_districts
 from utils.time import get_last_week
 from utils.district import get_district_names
 from utils.pages import week_selector, add_logo

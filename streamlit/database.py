@@ -225,7 +225,7 @@ def get_citizens(weeks=None):
    
         return df
 
-def get_call_citizens(weeks, district=None):
+def get_call_citizens(weeks, district=None, callee_district=True):
     result = []
 
     with get_engine().connect() as conn:
@@ -242,7 +242,10 @@ def get_call_citizens(weeks, district=None):
                     AND NOT (start_time < '{start}' OR end_time > '{end}')
             """
             if district:
-                query = query + f"AND (callee_district_id = {district_id})"
+                if callee_district:
+                    query = query + f"AND (callee_district_id = {district_id})"
+                else:
+                    query = query + f"AND (caller_district_id = {district_id})"
             result.append((Session(conn).execute(text(query)).first()[0],) + (week,))
      
     df = pd.DataFrame(result, columns =['screen', 'week'])

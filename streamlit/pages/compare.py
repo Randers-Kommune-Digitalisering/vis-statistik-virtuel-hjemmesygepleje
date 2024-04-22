@@ -4,7 +4,7 @@ import altair as alt
 from st_pages import add_page_title
 
 from stats import get_weekly_stats_screen
-from calls import get_calls_dataframe, visits_data
+from call import get_calls_dataframe, visits_data
 from utils.time import get_last_week
 from utils.pages import week_selector, add_logo
 
