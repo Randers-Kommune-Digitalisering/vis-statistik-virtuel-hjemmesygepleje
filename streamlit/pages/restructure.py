@@ -129,17 +129,35 @@ def generate_graph(dataframe):
     dataframe.rename(columns={'district':'Distrikt'}, inplace=True)
     dataframe['Procent'] = (dataframe['screen'] / dataframe['citizens'])
 
-    selection = alt.selection_point(fields=['Distrikt'], bind='legend')
+    selection = alt.selection_multi(fields=['Distrikt'], bind='legend')
 
-    return alt.Chart(dataframe).mark_line().encode(
+    chart = alt.Chart(dataframe).mark_line( point={
+      "filled": False,
+      "fill": "white"
+    }).encode(
         alt.X('Uge:N',  scale=alt.Scale(padding=0)),
         alt.Y('Procent:Q').axis(format='%'),
         alt.Color('Distrikt:N').scale(scheme="dark2"),
         opacity=alt.condition(selection, alt.value(1), alt.value(0.2)),
-        tooltip=['Uge:N', 'Procent:Q', 'Distrikt:N']
+        tooltip=alt.Tooltip('Procent:Q', format=".2%")
     ).add_params(
         selection
     )
+
+    nearest = alt.selection(type='single', nearest=True, on='mouseover', fields=['Uge', 'Distrikt'], empty='none')
+
+    selectors = alt.Chart().mark_point(size=150, filled=True).encode(
+        alt.Color('Distrikt:N').scale(scheme="dark2"),
+        x="Uge:N",
+        y = alt.Y('Procent:Q').axis(format='.2%'),
+        opacity=alt.condition(nearest, alt.value(1), alt.value(0)),
+    ).add_selection(
+        nearest
+    ).transform_filter(selection)
+
+    chart = alt.layer(chart, selectors, data=dataframe, height=500)
+
+    return chart
 
 based_on_district_cont, district_selectort_cont, week_selector_cont = st.columns(3)
 
