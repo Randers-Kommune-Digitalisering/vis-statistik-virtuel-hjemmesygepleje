@@ -4,11 +4,13 @@ FROM python:3.12-slim
 
 # Set dir and user
 ENV APP_HOME=/app
-ENV APP_USER=non-root
+ENV USERNAME=non-root
+ENV USER_UID=11000
+ENV USER_GID=$USER_UID
 
-# Add user
-RUN addgroup $APP_USER && \
-    adduser $APP_USER -D -G $APP_USER -h $APP_HOME
+# Create the user
+RUN addgroup --gid $USER_GID nonroot && \
+    adduser --uid $USER_UID --gid $USER_GID --disabled-password --gecos "" nonroot
 
 WORKDIR /app
 
@@ -24,7 +26,7 @@ RUN pip3 install -r requirements.txt
 EXPOSE 8501
 
 # Set user
-USER $APP_USER
+USER $USER_UID
 
 ENTRYPOINT ["python3", "main.py"]
 #ENTRYPOINT ["streamlit", "run", "main.py", "--server.port=8501", "--server.address=0.0.0.0"]
