@@ -124,10 +124,14 @@ def generate_bar_charts(dataframe, type):
 
     return by_amount, by_percentage
 
-def generate_graph(dataframe):
+def generate_graph(dataframe):    
+    dataframe['Uden skærm'] = dataframe['citizens'] - dataframe['screen']
+    dataframe['Procent med skærm'] = (dataframe['screen'] / dataframe['citizens'])
+
+    dataframe.rename(columns={'screen':'Med skærm'}, inplace=True)
     dataframe.rename(columns={'week':'Uge'}, inplace=True)
     dataframe.rename(columns={'district':'Distrikt'}, inplace=True)
-    dataframe['Procent'] = (dataframe['screen'] / dataframe['citizens'])
+    
 
     selection = alt.selection_multi(fields=['Distrikt'], bind='legend')
 
@@ -136,10 +140,9 @@ def generate_graph(dataframe):
       "fill": "white"
     }).encode(
         alt.X('Uge:N',  scale=alt.Scale(padding=0)),
-        alt.Y('Procent:Q').axis(format='%'),
+        alt.Y('Procent med skærm:Q').axis(format='%'),
         alt.Color('Distrikt:N').scale(scheme="dark2"),
         opacity=alt.condition(selection, alt.value(1), alt.value(0.2)),
-        tooltip=alt.Tooltip('Procent:Q', format=".2%")
     ).add_params(
         selection
     )
@@ -149,8 +152,9 @@ def generate_graph(dataframe):
     selectors = alt.Chart().mark_point(size=150, filled=True).encode(
         alt.Color('Distrikt:N').scale(scheme="dark2"),
         x="Uge:N",
-        y = alt.Y('Procent:Q').axis(format='.2%'),
+        y = alt.Y('Procent med skærm:Q').axis(format='.2%'),
         opacity=alt.condition(nearest, alt.value(1), alt.value(0)),
+        tooltip=['Distrikt', 'Uge', alt.Tooltip('Procent med skærm',  format=".2%"), 'Med skærm', 'Uden skærm']
     ).add_selection(
         nearest
     ).transform_filter(selection)
