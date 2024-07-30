@@ -1,7 +1,7 @@
 import streamlit as st
 from st_pages import add_page_title, show_pages, Page, Section
 
-from utils.pages import add_logo
+from utils.pages import add_logo, font_sizes
 
 st.set_page_config(page_icon="assets/favicon.ico", layout="wide")
 
@@ -18,5 +18,6 @@ show_pages(
         ]
     )
 
+font_sizes()
 add_page_title()
 add_logo()
