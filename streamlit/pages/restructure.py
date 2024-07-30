@@ -163,20 +163,22 @@ def generate_graph(dataframe):
 
     return chart
 
-based_on_district_cont, district_selectort_cont, week_selector_cont = st.columns(3)
+district_selectort_cont, week_selector_cont = st.columns(2)
 
-with based_on_district_cont:
-    display = ("Baseret på medarbejder distrikt", "Baseret på borger distrikt")
+# based_on_district_cont, 
 
-    options = (False, True)
+# with based_on_district_cont:
+#     display = ("Baseret på medarbejder distrikt", "Baseret på borger distrikt")
 
-    based_on_district = st.selectbox("Data grundlag", options, format_func=lambda x: display[x])
+#     options = (False, True)
+
+#     based_on_district = st.selectbox("Data grundlag", options, format_func=lambda x: display[x])
 
 
 with week_selector_cont:
     week = week_selector(get_last_week(), '2024-07')
 
-data = read_data(week, based_on_district)
+data = read_data(week)
 
 time_interval = '14 dage'
 
