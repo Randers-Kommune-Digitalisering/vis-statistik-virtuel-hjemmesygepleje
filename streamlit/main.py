@@ -26,5 +26,5 @@ if __name__ == '__main__':
     sched.add_job(daily_job, 'cron', hour='12', minute='45')
     sched.start()
 
-    sys.argv = ["streamlit", "run", "streamlit_app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+    sys.argv = ["streamlit", "run", "streamlit_app.py", "--client.toolbarMode=auto", "--server.port=8501", "--server.address=0.0.0.0"]
     sys.exit(stcli.main())
