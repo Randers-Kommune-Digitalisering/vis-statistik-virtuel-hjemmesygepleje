@@ -307,39 +307,40 @@ def update_call_db(days, start=None, end=None):
 
     data = StringIO(call_log)
     df = pd.read_csv(data, sep=';')
-    
+
     df.dropna(how='all', inplace=True)
     df.dropna(how='all', axis=1, inplace=True)
-    
+
     df = df.drop(columns=['CallerAlias', 'Media info'])
-    df.columns = [c.lower().replace(' ', '_').replace("'s",'') for c in list(df)]
-    
+    df.columns = [c.lower().replace(' ', '_').replace("'s", '') for c in list(df)]
+
     with Session(get_engine()) as sess:
         districts = sess.scalars(select(District)).all()
 
         for col, dt in df.dtypes.items():
             if dt == object:
                 df[col] = df[col].apply(lambda x : x[2:].strip() if x.startswith("1:") else x)
-            
+
             if dt == 'int64' and 'seconds' in col:
                 df[col] = pd.to_timedelta(df[col], unit='s')
                 df[col] = df[col].astype(str).apply(lambda x : x.split(' ')[-1])
                 df.rename({col: col.split('_')[0]}, axis=1, inplace=True)
             elif 'cpr' in col:
-                df[col] = df[col].fillna('0000000000')
-                df[col.split('_')[0]] = df[col.split('_')[0]].astype(str) + ';' + df[col].astype(str)
-                df.drop([col], axis=1, inplace=True)
+                df[col] = df[col].astype(int)
+                df[col] = df[col].fillna(0)
+                # df[col.split('_')[0]] = df[col.split('_')[0]].astype(str) + ';' + df[col].astype(str)
+                # df.drop([col], axis=1, inplace=True)
             elif 'role' in col:
                 df[col] = df[col].map({'Employee': True, 'Resident': False})
                 df.rename({col: col.replace('role', 'employee')}, axis=1, inplace=True)
             elif 'ou' in col:
-                df[col] = df[col].apply( lambda value: next(d for d in districts if d.vitacomm_district == value.strip()).id)
+                df[col] = df[col].apply(lambda value: next(d for d in districts if d.vitacomm_district == value.strip()).id)
                 df.rename({col: col.replace('ou', 'district_id')}, axis=1, inplace=True)
             elif 'id' in col:
                 df.rename({col: 'id'}, axis=1, inplace=True)
-    
+
         pd.set_option('display.max_columns', None)
-        
+
         data = df.to_dict(orient='records')
         instances = [Call(**row) for row in data]
 

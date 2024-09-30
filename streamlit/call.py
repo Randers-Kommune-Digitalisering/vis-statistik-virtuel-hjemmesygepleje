@@ -100,10 +100,10 @@ def unique_citizens(dataframe, callee_district=True):
     df = df[df['duration'] > timedelta(seconds=0)]
 
     if callee_district:
-        citizens_s = df.groupby('callee_district')['callee'].nunique().sort_values(ascending=False)
+        citizens_s = df.groupby('callee_district')['callee_cpr'].nunique().sort_values(ascending=False)
     else:
-        citizens_s = df.groupby('caller_district')['callee'].nunique().sort_values(ascending=False)
-    citizens_s = pd.concat([citizens_s, pd.Series(df['callee'].nunique(), index = ['Randers Kommune'])])
+        citizens_s = df.groupby('caller_district')['callee_cpr'].nunique().sort_values(ascending=False)
+    citizens_s = pd.concat([citizens_s, pd.Series(df['callee_cpr'].nunique(), index = ['Randers Kommune'])])
     citizens_s.name = 'Borgere med opkald'
 
     return citizens_s
