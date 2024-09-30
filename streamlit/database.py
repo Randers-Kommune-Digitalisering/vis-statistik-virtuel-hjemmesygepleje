@@ -326,8 +326,9 @@ def update_call_db(days, start=None, end=None):
                 df[col] = df[col].astype(str).apply(lambda x : x.split(' ')[-1])
                 df.rename({col: col.split('_')[0]}, axis=1, inplace=True)
             elif 'cpr' in col:
-                df[col] = df[col].astype(int)
-                df[col] = df[col].fillna(0)
+                pass
+                # df[col] = df[col].astype(int)
+                # df[col] = df[col].fillna(0)
                 # df[col.split('_')[0]] = df[col.split('_')[0]].astype(str) + ';' + df[col].astype(str)
                 # df.drop([col], axis=1, inplace=True)
             elif 'role' in col:
