@@ -5,7 +5,7 @@ import pandas as pd
 from st_pages import add_page_title
 
 from stats import get_weekly_stats
-from call import get_calls_dataframe, unique_citizens
+from call.data import get_calls_dataframe, unique_citizens
 from database import get_citizens, get_call_citizens
 from utils.time import get_last_week, get_weeks
 from utils.pages import week_selector, add_logo, font_sizes

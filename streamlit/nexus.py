@@ -6,7 +6,7 @@ import functools as ft
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from models import District, Service, WeeklyStat
+from models import OU, Service, WeeklyStat
 from database import get_engine, add_or_update_multiple
 from sftp import list_all_files
 from config.settings import SFTP_PATH
@@ -32,7 +32,7 @@ def read_bi_data():
                 for s in xls.sheet_names:
                     
                     if 'ydelser' in s:
-                        districts = sess.scalars(select(District)).all()
+                        districts = sess.scalars(select(OU)).all()
                         df = pd.read_excel(xls, s)
 
                         df.dropna(how='all', inplace=True)
@@ -54,12 +54,12 @@ def read_bi_data():
                         else:
                             df['screen'] = False
 
-                        df['district_id'] = df['district_id'].apply( lambda value: next(d for d in districts if d.nexus_district == value).id)
+                        df['district_id'] = df['district_id'].apply( lambda value: next(d for d in districts if d.nexus_name == value).id)
 
                         service_dfs.append(df)
 
                     if 'planlagt' in s:
-                        districts = sess.scalars(select(District)).all()
+                        districts = sess.scalars(select(OU)).all()
                         df = pd.read_excel(xls, s)
 
                         df.dropna(how='all', inplace=True)
@@ -83,12 +83,12 @@ def read_bi_data():
                         df.rename(columns={id_vars[4]: names[2]}, inplace=True)
 
                         df[names[0]] = df[names[0]].apply( lambda value: round(value,2) )
-                        df['district_id'] = df['district_id'].apply( lambda value: next(d for d in districts if d.nexus_district == value).id )
+                        df['district_id'] = df['district_id'].apply( lambda value: next(d for d in districts if d.nexus_name == value).id )
 
                         week_stats_df.append(df)
                         
                     if 'borgere' in s:
-                        districts = sess.scalars(select(District)).all()
+                        districts = sess.scalars(select(OU)).all()
                         df = pd.read_excel(xls, s)
 
                         df.dropna(how='all', inplace=True)
@@ -96,7 +96,7 @@ def read_bi_data():
 
                         df.rename(columns={df.columns[0]: 'district_id'}, inplace=True)
                         df.rename(columns={df.columns[1]: 'citizens'}, inplace=True)
-                        df['district_id'] = df['district_id'].apply( lambda value: next(d for d in districts if d.nexus_district == value).id )
+                        df['district_id'] = df['district_id'].apply( lambda value: next(d for d in districts if d.nexus_name == value).id )
                         
                         week_stats_df.append(df)
 

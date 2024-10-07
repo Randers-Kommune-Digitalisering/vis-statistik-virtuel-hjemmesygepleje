@@ -2,14 +2,14 @@ import json
 import importlib
 import sqlalchemy
 import datetime
-import threading
+import re
 import pandas as pd
 
 from sqlalchemy import UniqueConstraint, exc, inspect, text, select
 from sqlalchemy.orm import Session
 from io import StringIO
 
-from models import Base, District, WeeklyStat, Service, Call
+from models import Base, OU, WeeklyStat, Service, Call
 from vitacomm import get_call_log_api
 from utils.time import generate_start_and_end_datetime, get_last_week, get_fortnight_start_and_end, get_weeks
 from config.logging import logger
@@ -40,7 +40,7 @@ def extract_unique_constraints(cls):
     return list(sum(unique_constraints, ()))
 
 def generate_sql_add_or_update(object_list, include_primary_key = False):
-    allowed_models = [District, WeeklyStat, Service, Call]
+    allowed_models = [OU, WeeklyStat, Service, Call]
     cls = type(object_list[0])
 
     if cls not in allowed_models:
@@ -85,15 +85,16 @@ def generate_sql_add_or_update(object_list, include_primary_key = False):
             sql += ','.join(rows)
             return sql
     else:
-       raise TypeError('Not all objects are the same type')
+        raise TypeError('Not all objects are the same type')
+
 
 def generate_sql_add_or_ignore(object_list):
-    allowed_models = [District, WeeklyStat, Service, Call]
+    allowed_models = [OU, WeeklyStat, Service, Call]
     cls = type(object_list[0])
 
     if cls not in allowed_models:
         raise TypeError(f'Type: "{cls.__name__}" is not allowed')
-    
+
     if len(set(map(type, object_list))) == 1:        
         mapper = inspect(cls)
         table = cls.__table__
@@ -102,17 +103,18 @@ def generate_sql_add_or_ignore(object_list):
         keys.sort()
 
         rows = []
-        
+
         for obj in object_list:
             row = list(zip(*sorted(dict(filter(lambda pair: True if pair[0] in keys else False, obj.__dict__.items())).items())))[1]
             rows.append(str(row))
-       
+
         sql = f'INSERT IGNORE INTO {table} (' + ','.join(keys) +') VALUES\n'
         sql += ','.join(rows)
         return sql
     else:
-       raise TypeError('Not all objects are the same type')
-    
+        raise TypeError('Not all objects are the same type')
+
+
 def seed_db():
     with open(SEED_FILE, 'r', encoding='utf') as jf:
         for c in json.load(jf):
@@ -128,18 +130,58 @@ def seed_db():
                 update_call_db(days=29, start=date)
                 date = date + datetime.timedelta(days=29)
 
+from sqlalchemy.ext.automap import automap_base
+
+def seed_db_new():
+    with Session(get_engine()) as session:
+
+        with open(SEED_FILE, 'r', encoding='utf') as jf:
+            data = json.load(jf)
+            mappings = {}
+
+            for entry in data:
+                target_module, target_class = entry['target_class'].split(':')
+                cls = getattr(importlib.import_module(target_module), target_class)
+                mappings[target_class] = {}
+                for obj_data in entry['data']:
+                    # Special handling for OU objects
+                    if target_class == 'OU':
+                        parent_name = obj_data.pop('parent', None)
+                        ou = cls(**obj_data)
+                        session.add(ou)
+                        session.flush()  # Ensure the ID is generated
+                        if obj_data['vitacomm_name']:
+                            mappings[target_class][obj_data['nexus_name'] + obj_data['vitacomm_name']] = (ou, parent_name)
+                        else:
+                            mappings[target_class][obj_data['nexus_name']] = (ou, parent_name)
+                    else:
+                        session.add(cls(**obj_data))
+            session.commit()
+
+            for target_class in mappings:
+                # Special handling for OU objects
+                if target_class == 'OU':
+                    for ou, parent_name in mappings[target_class].values():
+                        if parent_name:
+                            parent_ou = mappings[target_class].get(parent_name, (None,))[0]
+                            if parent_ou:
+                                ou.parent_id = parent_ou.id
+            session.commit()
+
 def add_or_update_multiple(object_list):
     execute_sql(generate_sql_add_or_update(object_list))
 
+
 def add_or_ignore_multiple(object_list):
-     execute_sql(generate_sql_add_or_ignore(object_list))
-    
+    execute_sql(generate_sql_add_or_ignore(object_list))
+
+
 def get_districts(amount=None):
     with Session(get_engine()) as sess:
         if amount:
-            query = select(District).limit(amount)
+            query = select(OU).limit(amount)
         else:
-            query = select(District)
+            query = select(OU)
     
         return sess.scalars(query).all()
     
@@ -155,8 +197,8 @@ def get_weekly_stats_dataframe_by_week(week):
         if df.empty:
             return None
 
-        districts = Session(conn).scalars(select(District)).all()
-        df['district_id'] = df['district_id'].apply( lambda value: next(d for d in districts if d.id == value).nexus_district)
+        districts = Session(conn).scalars(select(OU)).all()
+        df['district_id'] = df['district_id'].apply( lambda value: next(d for d in districts if d.id == value).nexus_name)
         df.rename(columns={'district_id':'district'}, inplace=True)
 
     df = df.sort_values('district')
@@ -171,8 +213,8 @@ def get_services_dataframes():
         query = f"SELECT * FROM service"
         df = pd.read_sql(query, conn)
 
-        districts = Session(conn).scalars(select(District)).all()
-        df['district_id'] = df['district_id'].apply( lambda value: next(d for d in districts if d.id == value).nexus_district)
+        districts = Session(conn).scalars(select(OU)).all()
+        df['district_id'] = df['district_id'].apply( lambda value: next(d for d in districts if d.id == value).nexus_name)
         df.rename(columns={'district_id':'district'}, inplace=True)
     
         screen = df.loc[df['screen'] == 1]
@@ -191,19 +233,20 @@ def get_calls(days=30, start=None, end=None):
         else:
             newest = df['end_time'].max()
             oldest = df['start_time'].min()
-            
+
             if end_datetime.replace(tzinfo=None) > datetime.datetime.now():
                 end_datetime = datetime.datetime.now()
-            
+
             if (newest + datetime.timedelta(hours=3)) < end_datetime.replace(tzinfo=None) or (oldest - datetime.timedelta(hours=3)) > start_datetime.replace(tzinfo=None):
                 df = update_call_db(days, start, end)
 
-            districts = Session(conn).scalars(select(District)).all()
-            df['callee_district_id'] = df['callee_district_id'].apply( lambda value: next(d for d in districts if d.id == value).nexus_district)
-            df['caller_district_id'] = df['caller_district_id'].apply( lambda value: next(d for d in districts if d.id == value).nexus_district)
-            df.rename(columns={'callee_district_id':'callee_district'}, inplace=True)
-            df.rename(columns={'caller_district_id':'caller_district'}, inplace=True)
+            # districts = Session(conn).scalars(select(District)).all()
+            # df['callee_district_id'] = df['callee_district_id'].apply( lambda value: next(d for d in districts if d.id == value).nexus_district)
+            # df['caller_district_id'] = df['caller_district_id'].apply( lambda value: next(d for d in districts if d.id == value).nexus_district)
+            # df.rename(columns={'callee_district_id':'callee_district'}, inplace=True)
+            # df.rename(columns={'caller_district_id':'caller_district'}, inplace=True)
 
+        df['duration'] = pd.to_timedelta(df['duration'])
         return df
 
 def get_citizens(weeks=None):
@@ -219,8 +262,8 @@ def get_citizens(weeks=None):
         if df.empty:
             return None
         
-        districts = Session(conn).scalars(select(District)).all()
-        df['district_id'] = df['district_id'].apply( lambda value: next(d for d in districts if d.id == value).nexus_district)
+        districts = Session(conn).scalars(select(OU)).all()
+        df['district_id'] = df['district_id'].apply( lambda value: next(d for d in districts if d.id == value).nexus_name)
         df.rename(columns={'district_id':'district'}, inplace=True)
    
         return df
@@ -230,14 +273,14 @@ def get_call_citizens(weeks, district=None, callee_district=True):
 
     with get_engine().connect() as conn:
         if district:
-            district_id = Session(conn).scalars(select(District).where(District.nexus_district == district)).first().id
+            district_id = Session(conn).scalars(select(OU).where(OU.nexus_name == district)).first().id
         for week in weeks:
             start, end = get_fortnight_start_and_end(week)
             query = f"""
                 SELECT COUNT(DISTINCT callee)
                 FROM {Call.__tablename__} 
                 WHERE 
-                    (callee_employee = 0 AND caller_employee = 1)
+                    (callee_role = 'Resident' AND caller_role = 'Employee')
                     AND NOT (duration = 0)
                     AND NOT (start_time < '{start}' OR end_time > '{end}')
             """
@@ -306,41 +349,37 @@ def update_call_db(days, start=None, end=None):
     call_log = get_call_log_api(days, start, end)
 
     data = StringIO(call_log)
-    df = pd.read_csv(data, sep=';')
+    df = pd.read_csv(data, sep=';', dtype={"Caller's CPR": str, "Callee's CPR": str})
 
     df.dropna(how='all', inplace=True)
     df.dropna(how='all', axis=1, inplace=True)
 
     df = df.drop(columns=['CallerAlias', 'Media info'])
-    df.columns = [c.lower().replace(' ', '_').replace("'s", '') for c in list(df)]
+    df.columns = [re.sub(r"'s|\(|\)", "", c.lower().replace(' ', '_')) for c in list(df)]
 
     with Session(get_engine()) as sess:
-        districts = sess.scalars(select(District)).all()
+        districts = sess.scalars(select(OU)).all()
 
         for col, dt in df.dtypes.items():
-            if dt == object:
+            if dt == object and 'cpr' not in col:
                 df[col] = df[col].apply(lambda x : x[2:].strip() if x.startswith("1:") else x)
 
             if dt == 'int64' and 'seconds' in col:
                 df[col] = pd.to_timedelta(df[col], unit='s')
-                df[col] = df[col].astype(str).apply(lambda x : x.split(' ')[-1])
+                df[col] = df[col].astype(str).apply(lambda x: x.split(' ')[-1])
                 df.rename({col: col.split('_')[0]}, axis=1, inplace=True)
             elif 'cpr' in col:
-                pass
-                # df[col] = df[col].astype(int)
-                # df[col] = df[col].fillna(0)
+                df[col] = df[col].fillna('0000000000')
                 # df[col.split('_')[0]] = df[col.split('_')[0]].astype(str) + ';' + df[col].astype(str)
                 # df.drop([col], axis=1, inplace=True)
-            elif 'role' in col:
-                df[col] = df[col].map({'Employee': True, 'Resident': False})
-                df.rename({col: col.replace('role', 'employee')}, axis=1, inplace=True)
+            # elif 'role' in col:
+            #     df[col] = df[col].map({'Employee': True, 'Resident': False})
+            #     df.rename({col: col.replace('role', 'employee')}, axis=1, inplace=True)
             elif 'ou' in col:
-                df[col] = df[col].apply(lambda value: next(d for d in districts if d.vitacomm_district == value.strip()).id)
+                df[col] = df[col].apply(lambda value: next(d for d in districts if d.vitacomm_name == value.strip()).id)
                 df.rename({col: col.replace('ou', 'district_id')}, axis=1, inplace=True)
             elif 'id' in col:
                 df.rename({col: 'id'}, axis=1, inplace=True)
-
-        pd.set_option('display.max_columns', None)
 
         data = df.to_dict(orient='records')
         instances = [Call(**row) for row in data]
