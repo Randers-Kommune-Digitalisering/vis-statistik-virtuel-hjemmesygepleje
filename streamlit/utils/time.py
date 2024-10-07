@@ -1,9 +1,11 @@
 import datetime
 import pytz
 
+
 def last_week_for_year(year):
     last_week = datetime.date(year, 12, 28)
     return last_week.isocalendar().week
+
 
 def generate_start_and_end_datetime_by_week(weeks, end):
     end_datetime = end + datetime.timedelta(minutes=1)
@@ -34,8 +36,9 @@ def generate_start_and_end_datetime(days=None, start=None, end=None):
             raise Exception('No delta_days')
         end_datetime = datetime.datetime.now(local_tz) - datetime.timedelta(minutes=1)
         start_datetime = end_datetime - datetime.timedelta(days)
-    
+
     return start_datetime, end_datetime
+
 
 def get_week_start_and_end(week):
     year, week = week.split('-')
@@ -43,15 +46,18 @@ def get_week_start_and_end(week):
     week_end = week_start + datetime.timedelta(weeks=1) - datetime.timedelta(seconds=1)
     return week_start, week_end
 
+
 def get_fortnight_start_and_end(week):
     year, week = week.split('-')
     fortnight_end = datetime.datetime.fromisocalendar(int(year), int(week)+1, 1)
     fortnight_start = fortnight_end - datetime.timedelta(weeks=2)
     return fortnight_start, fortnight_end - datetime.timedelta(seconds=1)
 
+
 def get_last_week():
     current_year, current_week, _ = (datetime.date.today() - datetime.timedelta(days=7)).isocalendar()
     return f'{current_year}-{current_week}'
+
 
 def get_weeks(start_week, end_week):
     min_year, min_week = [int(x) for x in start_week.split('-')]
@@ -67,11 +73,8 @@ def get_weeks(start_week, end_week):
             week_list += [f'{year}-{str(week).zfill(2)}' for week in range(sw, ew+1)]
 
         return week_list
-    
+
+
 def format_decimal_hours(decimal_hours):
     from datetime import timedelta
-    return  str(timedelta(hours=decimal_hours)).replace('days', 'døgn')
-    hours = int(decimal_hours)
-    minutes = int((decimal_hours*60) % 60)
-    seconds = int((decimal_hours*3600) % 60)
-    return f'{hours}:{minutes}:{seconds}'
+    return str(timedelta(hours=decimal_hours)).replace('days', 'døgn')

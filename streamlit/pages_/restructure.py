@@ -5,14 +5,15 @@ import pandas as pd
 from st_pages import add_page_title
 
 from stats import get_weekly_stats
-from call import get_calls_dataframe, unique_citizens
+from call.data import get_calls_dataframe, unique_citizens
 from database import get_citizens, get_call_citizens
 from utils.time import get_last_week, get_weeks
-from utils.pages import week_selector, add_logo
+from utils.pages import week_selector, add_logo, font_sizes
 
 st.set_page_config(page_icon="assets/favicon.ico")
 add_page_title(layout="wide")
 add_logo()
+font_sizes()
 
 @st.cache_data
 def read_data(week_str, callee_district=True):
@@ -222,7 +223,7 @@ districts = nexus['district'].unique()
 vitacomm_list = []
 for district in districts:
     district = None if district == 'Randers kommune' else district
-    vitacomm_list.append(read_vitacomm_data(start_week, end_week, district, based_on_district))
+    vitacomm_list.append(read_vitacomm_data(start_week, end_week, district))
 
 vitacomm = pd.concat(vitacomm_list)
 

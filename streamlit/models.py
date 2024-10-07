@@ -1,51 +1,54 @@
-from typing import List
-from typing import Optional
-from sqlalchemy import Column, ForeignKey, String, Double, Integer, Boolean, DateTime, Uuid, Time
+from sqlalchemy import Column, ForeignKey, String, Double, Integer, Boolean, DateTime, Time
 from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy.orm import Mapped
-from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import UniqueConstraint
+
 
 class Base(DeclarativeBase):
     pass
 
-class District(Base):
-    __tablename__ = "district"
+
+class OU(Base):
+    __tablename__ = "organization_unit"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    nexus_district =  Column(String(30))
-    vitacomm_district = Column(String(30))
+    nexus_name = Column(String(30))
+    nexus_id = Column(Integer, nullable=True)
+    vitacomm_name = Column(String(30))
     applikator_id = Column(Integer)
 
-    weekly_stats = relationship("WeeklyStat", back_populates="district", cascade="all, delete-orphan")
-    services = relationship("Service", back_populates="district", cascade="all, delete-orphan")
+    parent_id = Column(Integer, ForeignKey("organization_unit.id"), nullable=True)
+    parent = relationship("OU", remote_side=[id], back_populates="children", lazy='subquery')
+    children = relationship("OU", back_populates="parent")
 
-    __table_args__ = (UniqueConstraint('nexus_district', 'vitacomm_district', name='unique_district'),)
-    
+    weekly_stats = relationship("WeeklyStat", back_populates="ou", cascade="all, delete-orphan")
+    services = relationship("Service", back_populates="ou", cascade="all, delete-orphan")
+
+    __table_args__ = (UniqueConstraint('nexus_name', 'vitacomm_name', name='unique_ou'),)
+
     def __repr__(self) -> str:
-        return f"District(id={self.id!r}, nexus={self.nexus_district!r}, vitacomm={self.vitacomm_district!r}, applikator={self.applikator_id!r})"
+        return f"OU(id={self.id!r}, nexus={self.nexus_name!r}, vitacomm={self.vitacomm_name!r}, applikator={self.applikator_id!r})"
 
 
 class WeeklyStat(Base):
     __tablename__ = "weekly_stat"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    citizens = Column(Integer)
-    citizens_with_planned_visits = Column(Integer)
-    screen_citizens_with_planned_visits = Column(Integer)
+    residents = Column(Integer)
+    residents_with_planned_visits = Column(Integer)
+    screen_residentss_with_planned_visits = Column(Integer)
     planned_visits = Column(Integer)
     screen_planned_visits = Column(Integer)
     planned_hours = Column(Double)
     screen_planned_hours = Column(Double)
     week = Column(String(8))
 
-    district_id = Column(Integer, ForeignKey("district.id"))
+    ou_id = Column(Integer, ForeignKey("organization_unit.id"))
 
-    district = relationship("District", back_populates="weekly_stats", lazy='subquery')
+    ou = relationship("OU", back_populates="weekly_stats", lazy='subquery')
 
-    __table_args__ = (UniqueConstraint('district_id', 'week', name='unique_week'),)
-    
+    __table_args__ = (UniqueConstraint('ou_id', 'week', name='unique_week'),)
+
     def __repr__(self) -> str:
-        return f"Week(id={self.id!r}, district={self.district_id!r}, week={self.week!r}, citizens={self.citizens!r})"
+        return f"Week(id={self.id!r}, district={self.ou_id!r}, week={self.week!r}, residents={self.residents!r})"
 
 
 class Service(Base):
@@ -55,32 +58,36 @@ class Service(Base):
     visits = Column(Integer)
     screen = Column(Boolean)
     week = Column(String(8))
-    district_id = Column(Integer, ForeignKey("district.id"))
 
-    district = relationship("District", back_populates="services", lazy='subquery')
+    ou_id = Column(Integer, ForeignKey("organization_unit.id"))
 
-    __table_args__ = (UniqueConstraint('district_id', 'week', 'name', 'screen', name='unique_service'),)
-    
+    ou = relationship("OU", back_populates="services", lazy='subquery')
+
+    __table_args__ = (UniqueConstraint('ou_id', 'week', 'name', 'screen', name='unique_service'),)
+
     def __repr__(self) -> str:
-        return f"Service(id={self.id!r}, district={self.district_id!r}, week={self.week!r}, name={self.name!r})"
-    
+        return f"Service(id={self.id!r}, district={self.ou_id!r}, week={self.week!r}, name={self.name!r})"
+
+
 class Call(Base):
     __tablename__ = "call_log"
-    id = Column(String(36), primary_key=True) #Uuid
+    id = Column(String(36), primary_key=True)  # UUID from Vitacomm
     start_time = Column(DateTime)
     end_time = Column(DateTime)
-    duration = Column(Time)
+    duration_seconds = Column(Time)
     end_reason = Column(String(30))
 
     callee = Column(String(60))
-    callee_employee = Column(Boolean)
-    callee_district_id = Column(Integer, ForeignKey("district.id"))
-    callee_district = relationship("District", backref="callee_calls", lazy='subquery', foreign_keys=[callee_district_id])
+    callee_cpr = Column(String(11))
+    callee_role = Column(String(60))
+    callee_ou_id = Column(Integer, ForeignKey("organization_unit.id"))
+    callee_ou = relationship("OU", backref="callee_calls", lazy='subquery', foreign_keys=[callee_ou_id])
 
     caller = Column(String(60))
-    caller_employee = Column(Boolean)    
-    caller_district_id = Column(Integer, ForeignKey("district.id"))
-    caller_district = relationship("District", backref="caller_calls", lazy='subquery',foreign_keys=[caller_district_id])    
-    
+    caller_cpr = Column(String(11))
+    caller_role = Column(String(60))
+    caller_ou_id = Column(Integer, ForeignKey("organization_unit.id"))
+    caller_ou = relationship("OU", backref="caller_calls", lazy='subquery', foreign_keys=[caller_ou_id])    
+
     def __repr__(self) -> str:
         return f"Call(id={self.id!r})"

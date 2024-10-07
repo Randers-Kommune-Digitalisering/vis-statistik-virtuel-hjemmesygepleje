@@ -6,11 +6,12 @@ from st_pages import add_page_title
 from services import get_services
 from utils.time import get_last_week
 from utils.district import get_district_names
-from utils.pages import week_selector, add_logo
+from utils.pages import week_selector, add_logo, font_sizes
 
 st.set_page_config(page_icon="assets/favicon.ico")
 add_page_title(layout="wide")
 add_logo()
+font_sizes()
 
 @st.cache_data
 def read_data():
@@ -78,13 +79,10 @@ with screen_all_cont:
 
             pie_chart = generate_pie_chart(chart_df)
             
-            table_cont, chart_cont = st.columns(2)
+            st.altair_chart(pie_chart, use_container_width=True)
 
-            with table_cont:    
-                st.table(services_screen.head(10))
+            st.table(services_screen.head(10))
 
-            with chart_cont:
-                st.altair_chart(pie_chart, use_container_width=True)
 
 with non_screen_all_cont:
     title_string = f'#### Ikke Skærm ({district})' if all_time else f'#### Ikke Skærm ({district}) uge {week}' 
@@ -110,11 +108,6 @@ with non_screen_all_cont:
 
             pie_chart = generate_pie_chart(chart_df)
 
-            table_cont, chart_cont = st.columns(2)
+            st.altair_chart(pie_chart, use_container_width=True)
 
-            with table_cont:
-                st.table(services_non_screen.head(10))
-
-            with chart_cont:
-                st.altair_chart(pie_chart, use_container_width=True)
-
+            st.table(services_non_screen.head(10))

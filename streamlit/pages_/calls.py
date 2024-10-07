@@ -5,14 +5,15 @@ import matplotlib.pyplot as plt
 
 from st_pages import add_page_title
 
-from call import get_calls_dataframe, answered_unanwsered_by_district, answered_unanwsered_all_districts, average_duration_all_districts
+from call.data import get_calls_dataframe, answered_unanwsered_by_district, answered_unanwsered_all_districts, average_duration_all_districts
 from utils.time import get_last_week, get_weeks
 from utils.district import get_district_names
-from utils.pages import week_selector, add_logo
+from utils.pages import week_selector, add_logo, font_sizes
 
 st.set_page_config(page_icon="assets/favicon.ico")
 add_page_title(layout="wide")
 add_logo()
+font_sizes()
 
 @st.cache_data
 def read_data(week_str):
@@ -37,13 +38,17 @@ def read_historic_data(start, end):
 
     return data
 
+
 def generate_pie_chart(dataframe, district):
     title = district
     if district == 'Randers Kommune':
-        district = None  
+        district = None
+
+    print(answered_unanwsered_by_district(data, district))
     df = pd.DataFrame({'Status': ['Besvarede', 'Ubesvarede'], 'Antal': list(answered_unanwsered_by_district(data, district))})
+    print(df)
     df['Procent'] = ((df['Antal'] / sum(df['Antal'])) * 100)
-    df['Procent'] =  df['Procent'].map('{:.2f}%'.format)
+    df['Procent'] = df['Procent'].map('{:.2f}%'.format)
 
     base = alt.Chart(df, title=alt.TitleParams(title, anchor='start', offset=-20)).encode(
         theta="Antal:Q",
