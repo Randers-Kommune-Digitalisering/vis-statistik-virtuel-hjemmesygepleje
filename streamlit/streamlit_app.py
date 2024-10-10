@@ -141,7 +141,7 @@ with Session(get_engine()) as session:
                     bars = ax.bar(df['Adm. enhed'], df['Omlægningsgrad (%)'])
                     ax.set_title('Omlægningsgrad')
                     ax.set_ylabel('Omlægningsgrad (%)')
-                    ax.set_ylim(0, 15)  # Set y-axis limit to 15%
+                    ax.set_ylim(0, 25)  # Set y-axis limit to 25%
                     ax.set_xticklabels(df['Adm. enhed'], rotation=90)  # Rotate x labels
 
                     # Add values on bars
