@@ -8,11 +8,11 @@ from stats import get_weekly_stats
 from call.data import get_calls_dataframe, unique_citizens
 from database import get_citizens, get_call_citizens
 from utils.time import get_last_week, get_weeks
-from utils.pages import week_selector, add_logo, font_sizes
+from utils.pages import week_selector, get_logo, font_sizes
 
 st.set_page_config(page_icon="assets/favicon.ico")
 add_page_title(layout="wide")
-add_logo()
+get_logo()
 font_sizes()
 
 @st.cache_data

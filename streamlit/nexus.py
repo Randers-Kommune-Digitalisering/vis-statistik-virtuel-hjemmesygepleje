@@ -3,7 +3,7 @@ import io
 import pandas as pd
 import functools as ft
 
-from sqlalchemy import select
+from sqlalchemy import select, exc
 from sqlalchemy.orm import Session
 
 from models import OU, Service, WeeklyStat
@@ -47,14 +47,15 @@ def read_bi_data():
                         
                         value_vars = df.columns.difference(id_vars)
                         df = pd.melt(df, id_vars=id_vars, value_vars=value_vars, var_name='name', value_name='visits')
-                        df.rename(columns={id_vars[0]: 'district_id'}, inplace=True)
+                        df.rename(columns={id_vars[0]: 'ou_id'}, inplace=True)
                         df['week'] = week
                         if 'skærm' in s:
                             df['screen'] = True
                         else:
                             df['screen'] = False
 
-                        df['district_id'] = df['district_id'].apply( lambda value: next(d for d in districts if d.nexus_name == value).id)
+                        df['ou_id'] = df['ou_id'].apply(lambda value: 'Distrikt Tørvebryggen' if value == 'Distrikt Lindevænget' else value)
+                        df['ou_id'] = df['ou_id'].apply( lambda value: next(d for d in districts if d.nexus_name == value).id)
 
                         service_dfs.append(df)
 
@@ -72,9 +73,9 @@ def read_bi_data():
                                 df[col_name] = df[col_name].fillna(0).astype(int)
 
                         df.drop(id_vars[1], axis=1, inplace=True)
-                        df.rename(columns={id_vars[0]: 'district_id'}, inplace=True)
+                        df.rename(columns={id_vars[0]: 'ou_id'}, inplace=True)
 
-                        names = ['planned_hours', 'citizens_with_planned_visits', 'planned_visits']
+                        names = ['planned_hours', 'residents_with_planned_visits', 'planned_visits']
                         if 'skærm' in s:
                             names = ['screen_' + n for n in names]
                         
@@ -82,8 +83,9 @@ def read_bi_data():
                         df.rename(columns={id_vars[3]: names[1]}, inplace=True)
                         df.rename(columns={id_vars[4]: names[2]}, inplace=True)
 
-                        df[names[0]] = df[names[0]].apply( lambda value: round(value,2) )
-                        df['district_id'] = df['district_id'].apply( lambda value: next(d for d in districts if d.nexus_name == value).id )
+                        df[names[0]] = df[names[0]].apply( lambda value: round(value, 2))
+                        df['ou_id'] = df['ou_id'].apply(lambda value: 'Distrikt Tørvebryggen' if value == 'Distrikt Lindevænget' else value)
+                        df['ou_id'] = df['ou_id'].apply( lambda value: next(d for d in districts if d.nexus_name == value).id )
 
                         week_stats_df.append(df)
                         
@@ -94,13 +96,32 @@ def read_bi_data():
                         df.dropna(how='all', inplace=True)
                         df.dropna(how='all', axis=1, inplace=True)
 
-                        df.rename(columns={df.columns[0]: 'district_id'}, inplace=True)
-                        df.rename(columns={df.columns[1]: 'citizens'}, inplace=True)
-                        df['district_id'] = df['district_id'].apply( lambda value: next(d for d in districts if d.nexus_name == value).id )
+                        df.rename(columns={df.columns[0]: 'ou_id'}, inplace=True)
+                        df.rename(columns={df.columns[1]: 'residents'}, inplace=True)
+                        ##########################################################
+                        # Convert lists to sets
+                        # set1 = set(df['ou_id'].unique())
+                        # set2 = set([d.nexus_name for d in districts])
+
+                        # # Values present in both lists
+                        # common_values = set1.intersection(set2)
+
+                        # # Values in list1 but not in list2
+                        # unique_to_list1 = set1 - set2
+
+                        # # Values in list2 but not in list1
+                        # unique_to_list2 = set2 - set1
+
+                        # print("Common values:", common_values)
+                        # print("Unique to list1:", unique_to_list1)
+                        # print("Unique to list2:", unique_to_list2)
+                        ##########################################################
+                        df['ou_id'] = df['ou_id'].apply(lambda value: 'Distrikt Tørvebryggen' if value == 'Distrikt Lindevænget' else value)
+                        df['ou_id'] = df['ou_id'].apply(lambda value: next(d for d in districts if d.nexus_name == value).id)
                         
                         week_stats_df.append(df)
 
-                week_stats_df = ft.reduce(lambda left, right: pd.merge(left, right, on='district_id'), week_stats_df)
+                week_stats_df = ft.reduce(lambda left, right: pd.merge(left, right, on='ou_id'), week_stats_df)
                 week_stats_df['week'] = week
 
                 week_stats = []
@@ -108,7 +129,13 @@ def read_bi_data():
                 for _, row in week_stats_df.iterrows():
                     week_stats.append(WeeklyStat(**row))
 
-                add_or_update_multiple(week_stats)
+                for instance in week_stats:
+                    try:
+                        sess.merge(instance)
+                        sess.commit()
+                    except exc.IntegrityError:
+                        sess.rollback()
+                # add_or_update_multiple(week_stats)
 
                 service_df = pd.concat(service_dfs)
 
@@ -117,4 +144,10 @@ def read_bi_data():
                 for _, row in service_df.iterrows():
                     services.append(Service(**row))
 
-                add_or_update_multiple(services)
+                for instance in services:
+                    try:
+                        sess.merge(instance)
+                        sess.commit()
+                    except exc.IntegrityError:
+                        sess.rollback()
+                # add_or_update_multiple(services)

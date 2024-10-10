@@ -7,12 +7,12 @@ from st_pages import add_page_title
 
 from call.data import get_calls_dataframe, answered_unanwsered_by_district, answered_unanwsered_all_districts, average_duration_all_districts
 from utils.time import get_last_week, get_weeks
-from utils.district import get_district_names
-from utils.pages import week_selector, add_logo, font_sizes
+from utils.ou import get_district_names
+from utils.pages import week_selector, get_logo, font_sizes
 
 st.set_page_config(page_icon="assets/favicon.ico")
 add_page_title(layout="wide")
-add_logo()
+get_logo()
 font_sizes()
 
 @st.cache_data

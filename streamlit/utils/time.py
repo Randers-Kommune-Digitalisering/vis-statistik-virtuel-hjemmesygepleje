@@ -59,6 +59,11 @@ def get_last_week():
     return f'{current_year}-{current_week}'
 
 
+def get_week_before_last():
+    current_year, current_week, _ = (datetime.date.today() - datetime.timedelta(days=14)).isocalendar()
+    return f'{current_year}-{current_week}'
+
+
 def get_weeks(start_week, end_week):
     min_year, min_week = [int(x) for x in start_week.split('-')]
     max_year, max_week = [int(x) for x in end_week.split('-')]

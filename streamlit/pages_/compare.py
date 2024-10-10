@@ -6,11 +6,11 @@ from st_pages import add_page_title
 from stats import get_weekly_stats_screen
 from call.data import get_calls_dataframe, visits_data
 from utils.time import get_last_week
-from utils.pages import week_selector, add_logo
+from utils.pages import week_selector, get_logo
 
 st.set_page_config(page_icon="assets/favicon.ico")
 add_page_title(layout="wide")
-add_logo()
+get_logo()
 
 @st.cache_data
 def read_data(week_str):

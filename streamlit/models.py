@@ -34,7 +34,7 @@ class WeeklyStat(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     residents = Column(Integer)
     residents_with_planned_visits = Column(Integer)
-    screen_residentss_with_planned_visits = Column(Integer)
+    screen_residents_with_planned_visits = Column(Integer)
     planned_visits = Column(Integer)
     screen_planned_visits = Column(Integer)
     planned_hours = Column(Double)
@@ -74,7 +74,7 @@ class Call(Base):
     id = Column(String(36), primary_key=True)  # UUID from Vitacomm
     start_time = Column(DateTime)
     end_time = Column(DateTime)
-    duration_seconds = Column(Time)
+    duration = Column(Time)
     end_reason = Column(String(30))
 
     callee = Column(String(60))
