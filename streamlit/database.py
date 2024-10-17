@@ -6,6 +6,7 @@ import re
 import pandas as pd
 
 from sqlalchemy import UniqueConstraint, exc, inspect, text, select
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 from io import StringIO
 
@@ -25,14 +26,10 @@ def create_db():
 
 
 def execute_sql(sql):
-    try:
-        with get_engine().connect() as conn:
-            res = conn.execute(text(sql))
-            conn.commit()
-            return res
-    except exc.SQLAlchemyError as e:
-        print(e.code)
-        #print(e)
+    with get_engine().connect() as conn:
+        res = conn.execute(text(sql))
+        conn.commit()
+        return res
 
 
 def extract_unique_constraints(cls):
@@ -145,6 +142,8 @@ def seed_call_logs():
         date = date + datetime.timedelta(days=29)
 
 
+from sqlalchemy import update
+
 def seed_db():
     with Session(get_engine()) as session:
 
@@ -161,15 +160,42 @@ def seed_db():
                     if target_class == 'OU':
                         parent_name = obj_data.pop('parent', None)
                         ou = cls(**obj_data)
+                        nexus_name = obj_data.get('nexus_name', '') or ''
+                        vitacomm_name = obj_data.get('vitacomm_name', '') or ''
+
                         try:
-                            session.add(ou)
-                            session.flush()  # Ensure the ID is generated
-                            if obj_data['vitacomm_name']:
-                                mappings[target_class][obj_data['nexus_name'] + obj_data['vitacomm_name']] = (ou, parent_name)
-                            else:
-                                mappings[target_class][obj_data['nexus_name']] = (ou, parent_name)
-                        except exc.IntegrityError:
+                            stmt = insert(cls).values(obj_data).on_conflict_do_update(
+                                constraint='unique_ou',
+                                set_={column.name: getattr(ou, column.name) for column in cls.__table__.columns if column.name != 'id'}
+                            ).returning(cls)
+                            res = session.execute(stmt)
+                        except exc.IntegrityError as e:
                             session.rollback()
+
+                            if "unique_nexus" in str(e.orig):
+                                updated_stmt = (
+                                    update(OU).
+                                    where(OU.nexus_name == obj_data['nexus_name'], OU.vitacomm_name.is_(None)).
+                                    values({column.name: getattr(ou, column.name) for column in cls.__table__.columns if column.name not in ['id', 'nexus_name']}).
+                                    returning(OU)
+                                )
+                                res = session.execute(updated_stmt)
+
+                            elif "unique_vitacomm" in str(e.orig):
+                                updated_stmt = (
+                                    update(OU).
+                                    where(OU.nexus_name == obj_data['nexus_name'], OU.applikator_id.is_(None)).
+                                    values({column.name: getattr(ou, column.name) for column in cls.__table__.columns if column.name not in ['id', 'vitacomm_name']}).
+                                    returning(OU)
+                                )
+                                res = session.execute(updated_stmt)
+
+                            else:
+                                raise e
+
+                        ou = res.fetchone()[0]
+                        mappings[target_class][nexus_name + vitacomm_name] = (ou, parent_name)
+                        session.commit()
                     else:
                         try:
                             session.add(cls(**obj_data))

@@ -42,8 +42,8 @@ with Session(get_engine()) as session:
                 return None
 
             children = [generate_menu_item(child) for child in ou.children if 'intet' not in child.nexus_name.lower()] if ou.children else None
-            if any(x in ou.nexus_name for x in ['Ældre og Sundhed', 'Vest', 'Nord', 'Syd']) and children:
-                children.insert(0, sac.MenuItem(ou.nexus_name, children=None))
+            if any(x in ou.nexus_name for x in ['Omsorg', 'Vest', 'Nord', 'Syd']) and children:
+                children.insert(0, sac.MenuItem(ou.nexus_name, description='Data for alle undergrupper', children=None, tag=[sac.Tag('alle', color='black')]))
             if children:
                 added_items.add(ou.nexus_name)
                 return sac.MenuItem(ou.nexus_name, children=[child for child in children if child is not None])
@@ -53,22 +53,27 @@ with Session(get_engine()) as session:
         menu_items = [generate_menu_item(top)]
         return menu_items
 
-    st.set_page_config(page_icon="assets/favicon.ico", layout="wide")
+    st.set_page_config(page_title="Statistikmodul", page_icon="assets/favicon.ico", layout="wide")
     st.markdown(get_logo(), unsafe_allow_html=True)
     top_container = st.container()
     c = st.columns([1, 5])
 
     with c[0]:
-        selected_menu_item = sac.menu(generate_menu_items(), indent=10, color='black', index=3, open_index=[0, 1, 2, 3])
+        selected_menu_item = sac.menu(generate_menu_items(), indent=10, color='black', index=2, open_index=[0, 1])
 
     last_week = get_last_week()
 
     children = get_children(selected_menu_item)
 
     if children:
+        children_of_children = [item for child in children for item in get_children(child)]
         children_convertion_rate = []
-        for child in children:
-            children_convertion_rate.append({child: get_call_data(last_week, child)['Omlægningsgrad']})
+        if children_of_children:
+            for child in children_of_children:
+                children_convertion_rate.append({child: get_call_data(last_week, child)['Omlægningsgrad']})
+        else:
+            for child in children:
+                children_convertion_rate.append({child: get_call_data(last_week, child)['Omlægningsgrad']})
 
     ou_to_select = None if 'Ældre og Sundhed' in selected_menu_item else selected_menu_item
     data_this_week = get_call_data(last_week, ou_to_select)
@@ -82,7 +87,7 @@ with Session(get_engine()) as session:
     with c[1]:
         if data_this_week:
             if children:
-                nc = st.columns([1, 1, 1, 1])
+                nc = st.columns([1, 1, 1, 3])
             else:
                 nc = st.columns([1, 1, 1])
 
@@ -117,7 +122,10 @@ with Session(get_engine()) as session:
                     pass
                 elif 'Opkald' in key:
                     with nc[0]:
-                        st.metric(label=key, value=value, delta=delta_value, delta_color=delta_color)
+                        if 'gennemsnitlig' in key:
+                            st.metric(label=key, value=value)
+                        else:
+                            st.metric(label=key, value=value, delta=delta_value, delta_color=delta_color)
                 elif 'Borgere' in key:
                     with nc[1]:
                         st.metric(label=key, value=value, delta=delta_value, delta_color=delta_color)
@@ -142,6 +150,7 @@ with Session(get_engine()) as session:
                     ax.set_title('Omlægningsgrad')
                     ax.set_ylabel('Omlægningsgrad (%)')
                     ax.set_ylim(0, 25)  # Set y-axis limit to 25%
+                    ax.set_xticks(range(len(df['Adm. enhed']))) 
                     ax.set_xticklabels(df['Adm. enhed'], rotation=90)  # Rotate x labels
 
                     # Add values on bars

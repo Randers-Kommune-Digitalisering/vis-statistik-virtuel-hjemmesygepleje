@@ -57,7 +57,6 @@ def answered_unanwsered_all_districts(dataframe):
 
 
 def average_duration_all_districts(dataframe):
-    print('HEJ!!!')
     if isinstance(dataframe, pd.DataFrame):
         df = dataframe
     else:
@@ -152,21 +151,21 @@ def get_call_data(week=None, ou=None):
                 total_calls = session.query(Call).join(OU, Call.caller_ou_id == OU.id).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.callee_role == 'Resident', Call.caller_role == 'Employee')).filter(OU.parent_id.in_(ou_ids)).count()
                 answered_calls = session.query(Call).join(OU, Call.caller_ou_id == OU.id).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Resident', Call.caller_role == 'Employee')).filter(OU.parent_id.in_(ou_ids)).count()
                 average_duration = session.query(Call).join(OU, Call.caller_ou_id == OU.id).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Resident', Call.caller_role == 'Employee')).filter(OU.parent_id.in_(ou_ids)).with_entities(func.avg(Call.duration)).scalar()
-                active_residents = session.query(Call).join(OU, Call.caller_ou_id == OU.id).filter(and_(Call.start_time >= start_active_residents, Call.start_time <= end, Call.callee_role == 'Resident', Call.caller_role == 'Employee')).filter(OU.parent_id.in_(ou_ids)).distinct(Call.callee_cpr).count()
+                active_residents = session.query(Call).join(OU, Call.caller_ou_id == OU.id).filter(and_(Call.start_time >= start_active_residents, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Resident', Call.caller_role == 'Employee')).filter(OU.parent_id.in_(ou_ids)).distinct(Call.callee_cpr).count()
                 all_residents = session.query(func.sum(WeeklyStat.residents)).join(OU, WeeklyStat.ou_id == OU.id).filter(WeeklyStat.week == week).filter(OU.parent_id.in_(ou_ids)).scalar()
                 # active_residents_test = session.query(Call.callee_cpr).join(OU, Call.caller_ou_id == OU.id).filter(and_(Call.start_time >= start, Call.start_time <= end, OU.parent_id == ou.id, Call.callee_role == 'Resident', Call.caller_role == 'Employee')).distinct(Call.callee_cpr).all()
             else:
                 total_calls = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.callee_role == 'Resident', Call.caller_role == 'Employee')).filter(Call.caller_ou_id.in_(ou_ids)).count()
                 answered_calls = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Resident', Call.caller_role == 'Employee')).filter(Call.caller_ou_id.in_(ou_ids)).count()
                 average_duration = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Resident', Call.caller_role == 'Employee')).filter(Call.caller_ou_id.in_(ou_ids)).with_entities(func.avg(Call.duration)).scalar()
-                active_residents = session.query(Call).filter(and_(Call.start_time >= start_active_residents, Call.start_time <= end, Call.callee_role == 'Resident', Call.caller_role == 'Employee')).filter(Call.caller_ou_id.in_(ou_ids)).distinct(Call.callee_cpr).count()
+                active_residents = session.query(Call).filter(and_(Call.start_time >= start_active_residents, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Resident', Call.caller_role == 'Employee')).filter(Call.caller_ou_id.in_(ou_ids)).distinct(Call.callee_cpr).count()
                 all_residents = session.query(WeeklyStat.residents).filter(WeeklyStat.week == week).filter(WeeklyStat.ou_id.in_(ou_ids)).scalar()
                 # active_residents_test = session.query(Call.callee_cpr).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.caller_ou_id == ou.id, Call.callee_role == 'Resident', Call.caller_role == 'Employee')).distinct(Call.callee_cpr).all()
         else:
             total_calls = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.callee_role == 'Resident', Call.caller_role == 'Employee')).count()
             answered_calls = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Resident', Call.caller_role == 'Employee')).count()
             average_duration = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Resident', Call.caller_role == 'Employee')).with_entities(func.avg(Call.duration)).scalar()
-            active_residents = session.query(Call).filter(and_(Call.start_time >= start_active_residents, Call.start_time <= end, Call.callee_role == 'Resident', Call.caller_role == 'Employee')).distinct(Call.callee_cpr).count()
+            active_residents = session.query(Call).filter(and_(Call.start_time >= start_active_residents, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Resident', Call.caller_role == 'Employee')).distinct(Call.callee_cpr).count()
             all_residents = session.query(func.sum(WeeklyStat.residents)).filter(WeeklyStat.week == week).scalar()
             # active_residents_test = session.query(Call.callee_cpr).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.callee_role == 'Resident', Call.caller_role == 'Employee')).distinct(Call.callee_cpr).all()
 
@@ -188,5 +187,5 @@ def get_call_data(week=None, ou=None):
         if not average_duration:
             average_duration = timedelta(seconds=0)
 
-        return {"Opkald i alt": total_calls, "Opkald besvarede": answered_calls, "Opkald Ubesvarede": unansered_calls, "Opkald gennemsnitlig varighed": average_duration, "Borgere i alt": all_residents,  "Borgere aktive": active_residents, "Borgere inaktive": '-', "Anvendelsesgrad": use_level, "Omlægningsgrad": conversion_rate}  # , "active_residents_test": active_residents_test}
+        return {"Opkald besvarede": answered_calls, "Opkald Ubesvarede": unansered_calls, "Opkald gennemsnitlig varighed": average_duration, "Borgere aktive": active_residents, "Borgere inaktive": '-', "Anvendelsesgrad": use_level, "Omlægningsgrad": conversion_rate}  # , "active_residents_test": active_residents_test}
     
