@@ -5,12 +5,12 @@ from st_pages import add_page_title
 
 from services import get_services
 from utils.time import get_last_week
-from utils.district import get_district_names
-from utils.pages import week_selector, add_logo, font_sizes
+from utils.ou import get_district_names
+from utils.pages import week_selector, get_logo, font_sizes
 
 st.set_page_config(page_icon="assets/favicon.ico")
 add_page_title(layout="wide")
-add_logo()
+get_logo()
 font_sizes()
 
 @st.cache_data
