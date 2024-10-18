@@ -13,4 +13,5 @@ SQLAlchemy==2.0.27
 st-pages==0.4.5
 streamlit==1.29.0
 streamlit-antd-components
+tabulate
 tornado==6.4
