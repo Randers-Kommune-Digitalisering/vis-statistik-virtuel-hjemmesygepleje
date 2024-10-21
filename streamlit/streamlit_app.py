@@ -91,9 +91,6 @@ with Session(get_engine()) as session:
                             else:
                                 delta_value = str(timedelta(seconds=round((value.total_seconds() - old_value.total_seconds()))))
                             value = str(timedelta(seconds=round(value.total_seconds())))
-                        elif type(value) is float:
-                            delta_value = round(value - old_value, 2)
-                            value = round(value, 2)
                         elif type(value) is str:
                             delta_value = '-'
                         elif type(value) is list:
@@ -102,8 +99,12 @@ with Session(get_engine()) as session:
                             delta_value = data_this_week[key] - data_week_before_last[key] 
 
                         if 'Omlægningsgrad' in key:
-                            value = str(round(value * 100, 2)) + '%'
-                            delta_value = str(round(delta_value * 100, 2)) + '%'
+                            value = f"{value * 100:.2f}%"
+                            delta_value = f"{delta_value * 100:.2f}%"
+
+                        if 'Anvendelsesgrad' in key:
+                            delta_value = round(value - old_value, 2)
+                            value = round(value, 2)
 
                         if any(x in key for x in ['ubesvarede', 'varighed']):
                             delta_color = 'inverse'
@@ -136,14 +137,16 @@ with Session(get_engine()) as session:
                                     'Adm. enhed': child_names,
                                     'Omlægningsgrad (%)': conversion_rates  # Update column name to reflect percentage
                                 })
-                                # df = df.sort_values(by='Omlægningsgrad (%)', ascending=False)
-                                df = df.sort_values(by='Adm. enhed', ascending=True)
+
+                                df = df.sort_values('Adm. enhed', ascending=True)
+                                df = df.groupby('Adm. enhed', as_index=False).sum()
+
                                 fig, ax = plt.subplots()
                                 bars = ax.bar(df['Adm. enhed'], df['Omlægningsgrad (%)'])
                                 ax.set_title('Omlægningsgrad')
                                 ax.set_ylabel('Omlægningsgrad (%)')
                                 ax.set_ylim(0, max(df['Omlægningsgrad (%)']) * 1.2)  # Set y-axis limit to 10% higher than the highest percentage
-                                ax.set_xticks(range(len(df['Adm. enhed']))) 
+                                ax.set_xticks(range(len(df['Adm. enhed'])))
                                 ax.set_xticklabels(df['Adm. enhed'], rotation=90)  # Rotate x labels
 
                                 # Add values on bars
@@ -165,14 +168,16 @@ with Session(get_engine()) as session:
                                     'Adm. enhed': child_names,
                                     'Opkald besvarede': answered_calls  # Update column name to reflect percentage
                                 })
-                                # df = df.sort_values(by='Opkald besvarede', ascending=False)
-                                df = df.sort_values(by='Adm. enhed', ascending=True)
+
+                                df = df.sort_values('Adm. enhed', ascending=True)
+                                df = df.groupby('Adm. enhed', as_index=False).sum()
+
                                 fig, ax = plt.subplots()
                                 bars = ax.bar(df['Adm. enhed'], df['Opkald besvarede'])
                                 ax.set_title('Opkald besvarede')
                                 ax.set_ylabel('Opkald besvarede')
                                 ax.set_ylim(0, max(df['Opkald besvarede']) * 1.1)  # Set y-axis limit to highest number plus 10
-                                ax.set_xticks(range(len(df['Adm. enhed']))) 
+                                ax.set_xticks(range(len(df['Adm. enhed'])))
                                 ax.set_xticklabels(df['Adm. enhed'], rotation=90)  # Rotate x labels
 
                                 # Add values on bars

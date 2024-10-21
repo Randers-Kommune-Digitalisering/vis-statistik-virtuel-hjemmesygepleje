@@ -44,9 +44,7 @@ def generate_pie_chart(dataframe, district):
     if district == 'Randers Kommune':
         district = None
 
-    print(answered_unanwsered_by_district(data, district))
     df = pd.DataFrame({'Status': ['Besvarede', 'Ubesvarede'], 'Antal': list(answered_unanwsered_by_district(data, district))})
-    print(df)
     df['Procent'] = ((df['Antal'] / sum(df['Antal'])) * 100)
     df['Procent'] = df['Procent'].map('{:.2f}%'.format)
 
