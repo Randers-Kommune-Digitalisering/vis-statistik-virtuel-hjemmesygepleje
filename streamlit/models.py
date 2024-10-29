@@ -1,7 +1,7 @@
-from sqlalchemy import Column, ForeignKey, String, Double, Integer, Boolean, DateTime, Time
+from sqlalchemy import Column, ForeignKey, String, Double, Integer, Boolean, DateTime, Time, DDL, UniqueConstraint, event
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import relationship
-from sqlalchemy.schema import UniqueConstraint
+# from sqlalchemy.schema import UniqueConstraint
 
 
 class Base(DeclarativeBase):
@@ -11,7 +11,7 @@ class Base(DeclarativeBase):
 class OU(Base):
     __tablename__ = "organization_unit"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    nexus_name = Column(String(30))
+    nexus_name = Column(String(30), nullable=False)
     nexus_id = Column(Integer, nullable=True)
     vitacomm_name = Column(String(30))
     applikator_id = Column(Integer)
@@ -24,9 +24,19 @@ class OU(Base):
     services = relationship("Service", back_populates="ou", cascade="all, delete-orphan")
 
     __table_args__ = (UniqueConstraint('nexus_name', 'vitacomm_name', name='unique_ou'),)
+    # __table_args__ = (
+    #     UniqueConstraint('nexus_name', 'vitacomm_name', name='unique_ou'),
+    #     DDL('CREATE UNIQUE INDEX unique_nexus_vitacomm ON organization_unit (nexus_name) WHERE vitacomm_name IS NULL')
+    # )
 
     def __repr__(self) -> str:
         return f"OU(id={self.id!r}, nexus={self.nexus_name!r}, vitacomm={self.vitacomm_name!r}, applikator={self.applikator_id!r})"
+
+
+@event.listens_for(OU.__table__, 'after_create')
+def create_partial_index(target, connection, **kwargs):
+    connection.execute(DDL('CREATE UNIQUE INDEX unique_nexus ON organization_unit (nexus_name) WHERE vitacomm_name IS NULL'))
+    connection.execute(DDL('CREATE UNIQUE INDEX unique_vitacomm ON organization_unit (vitacomm_name) WHERE nexus_name IS NULL'))
 
 
 class WeeklyStat(Base):

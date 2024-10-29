@@ -2,10 +2,10 @@ import pandas as pd
 # import numpy as np
 from datetime import timedelta
 
-from sqlalchemy import and_, func
+from sqlalchemy import and_, or_, func
 from sqlalchemy.orm import Session
 
-from models import OU, Call, WeeklyStat
+from models import OU, Call, WeeklyStat, Service
 from database import get_calls, get_engine
 from utils.time import get_week_start_and_end, get_last_week, format_decimal_hours
 from utils.ou import get_district_vitacomm, get_nexus_district
@@ -57,7 +57,6 @@ def answered_unanwsered_all_districts(dataframe):
 
 
 def average_duration_all_districts(dataframe):
-    print('HEJ!!!')
     if isinstance(dataframe, pd.DataFrame):
         df = dataframe
     else:
@@ -136,7 +135,7 @@ def get_children(ou):
         return []
 
 
-def get_call_data(week=None, ou=None):
+def get_overview_data(week=None, ou=None):
     if week is None:
         week = get_last_week()
 
@@ -144,7 +143,7 @@ def get_call_data(week=None, ou=None):
     start_active_residents = start - timedelta(days=21)
 
     with Session(get_engine()) as session:
-        total_calls, answered_calls, unansered_calls, average_duration, active_residents = None, None, None, None, None
+        total_calls, answered_calls, unanswered_calls, average_duration, active_residents = None, None, None, None, None
         if ou:
             ous = session.query(OU).filter(OU.nexus_name == ou).all()
             ou_ids = [ou.id for ou in ous]
@@ -152,25 +151,25 @@ def get_call_data(week=None, ou=None):
                 total_calls = session.query(Call).join(OU, Call.caller_ou_id == OU.id).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.callee_role == 'Resident', Call.caller_role == 'Employee')).filter(OU.parent_id.in_(ou_ids)).count()
                 answered_calls = session.query(Call).join(OU, Call.caller_ou_id == OU.id).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Resident', Call.caller_role == 'Employee')).filter(OU.parent_id.in_(ou_ids)).count()
                 average_duration = session.query(Call).join(OU, Call.caller_ou_id == OU.id).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Resident', Call.caller_role == 'Employee')).filter(OU.parent_id.in_(ou_ids)).with_entities(func.avg(Call.duration)).scalar()
-                active_residents = session.query(Call).join(OU, Call.caller_ou_id == OU.id).filter(and_(Call.start_time >= start_active_residents, Call.start_time <= end, Call.callee_role == 'Resident', Call.caller_role == 'Employee')).filter(OU.parent_id.in_(ou_ids)).distinct(Call.callee_cpr).count()
+                active_residents = session.query(Call).join(OU, Call.caller_ou_id == OU.id).filter(and_(Call.start_time >= start_active_residents, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Resident', Call.caller_role == 'Employee')).filter(OU.parent_id.in_(ou_ids)).distinct(Call.callee_cpr).count()
                 all_residents = session.query(func.sum(WeeklyStat.residents)).join(OU, WeeklyStat.ou_id == OU.id).filter(WeeklyStat.week == week).filter(OU.parent_id.in_(ou_ids)).scalar()
                 # active_residents_test = session.query(Call.callee_cpr).join(OU, Call.caller_ou_id == OU.id).filter(and_(Call.start_time >= start, Call.start_time <= end, OU.parent_id == ou.id, Call.callee_role == 'Resident', Call.caller_role == 'Employee')).distinct(Call.callee_cpr).all()
             else:
                 total_calls = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.callee_role == 'Resident', Call.caller_role == 'Employee')).filter(Call.caller_ou_id.in_(ou_ids)).count()
                 answered_calls = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Resident', Call.caller_role == 'Employee')).filter(Call.caller_ou_id.in_(ou_ids)).count()
                 average_duration = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Resident', Call.caller_role == 'Employee')).filter(Call.caller_ou_id.in_(ou_ids)).with_entities(func.avg(Call.duration)).scalar()
-                active_residents = session.query(Call).filter(and_(Call.start_time >= start_active_residents, Call.start_time <= end, Call.callee_role == 'Resident', Call.caller_role == 'Employee')).filter(Call.caller_ou_id.in_(ou_ids)).distinct(Call.callee_cpr).count()
+                active_residents = session.query(Call).filter(and_(Call.start_time >= start_active_residents, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Resident', Call.caller_role == 'Employee')).filter(Call.caller_ou_id.in_(ou_ids)).distinct(Call.callee_cpr).count()
                 all_residents = session.query(WeeklyStat.residents).filter(WeeklyStat.week == week).filter(WeeklyStat.ou_id.in_(ou_ids)).scalar()
                 # active_residents_test = session.query(Call.callee_cpr).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.caller_ou_id == ou.id, Call.callee_role == 'Resident', Call.caller_role == 'Employee')).distinct(Call.callee_cpr).all()
         else:
             total_calls = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.callee_role == 'Resident', Call.caller_role == 'Employee')).count()
             answered_calls = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Resident', Call.caller_role == 'Employee')).count()
             average_duration = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Resident', Call.caller_role == 'Employee')).with_entities(func.avg(Call.duration)).scalar()
-            active_residents = session.query(Call).filter(and_(Call.start_time >= start_active_residents, Call.start_time <= end, Call.callee_role == 'Resident', Call.caller_role == 'Employee')).distinct(Call.callee_cpr).count()
+            active_residents = session.query(Call).filter(and_(Call.start_time >= start_active_residents, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Resident', Call.caller_role == 'Employee')).distinct(Call.callee_cpr).count()
             all_residents = session.query(func.sum(WeeklyStat.residents)).filter(WeeklyStat.week == week).scalar()
             # active_residents_test = session.query(Call.callee_cpr).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.callee_role == 'Resident', Call.caller_role == 'Employee')).distinct(Call.callee_cpr).all()
 
-        unansered_calls = total_calls - answered_calls
+        unanswered_calls = total_calls - answered_calls
 
         if not all_residents:
             all_residents = 0
@@ -188,5 +187,62 @@ def get_call_data(week=None, ou=None):
         if not average_duration:
             average_duration = timedelta(seconds=0)
 
-        return {"Opkald i alt": total_calls, "Opkald besvarede": answered_calls, "Opkald Ubesvarede": unansered_calls, "Opkald gennemsnitlig varighed": average_duration, "Borgere i alt": all_residents,  "Borgere aktive": active_residents, "Borgere inaktive": '-', "Anvendelsesgrad": use_level, "Omlægningsgrad": conversion_rate}  # , "active_residents_test": active_residents_test}
-    
+        return {"Opkald besvarede": answered_calls, "Opkald ubesvarede": unanswered_calls, "Opkald gennemsnitlig varighed": average_duration, "Borgere aktive": active_residents, "Borgere inaktive": '-', "Anvendelsesgrad": use_level, "Omlægningsgrad": conversion_rate}  # , "active_residents_test": active_residents_test}
+
+
+def get_employee_data(week=None, ou=None):
+    if week is None:
+        week = get_last_week()
+
+    start, end = get_week_start_and_end(week)
+
+    with Session(get_engine()) as session:
+        total_calls, answered_calls, unanswered_calls, average_duration = None, None, None, None
+        if ou:
+            ous = session.query(OU).filter(OU.nexus_name == ou).all()
+            ou_ids = [ou.id for ou in ous]
+            if any([ou.children for ou in ous]):
+                total_calls = session.query(Call).join(OU, or_(Call.caller_ou_id == OU.id, Call.callee_ou_id == OU.id)).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.callee_role == 'Employee', Call.caller_role == 'Employee')).filter(OU.parent_id.in_(ou_ids)).count()
+                answered_calls = session.query(Call).join(OU, or_(Call.caller_ou_id == OU.id, Call.callee_ou_id == OU.id)).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Employee', Call.caller_role == 'Employee')).filter(OU.parent_id.in_(ou_ids)).count()
+                average_duration = session.query(Call).join(OU, or_(Call.caller_ou_id == OU.id, Call.callee_ou_id == OU.id)).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Employee', Call.caller_role == 'Employee')).filter(OU.parent_id.in_(ou_ids)).with_entities(func.avg(Call.duration)).scalar()
+            else:
+                total_calls = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.callee_role == 'Employee', Call.caller_role == 'Employee')).filter(or_(Call.caller_ou_id.in_(ou_ids), Call.callee_ou_id.in_(ou_ids))).count()
+                answered_calls = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Employee', Call.caller_role == 'Employee')).filter(or_(Call.caller_ou_id.in_(ou_ids), Call.callee_ou_id.in_(ou_ids))).count()
+                average_duration = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Employee', Call.caller_role == 'Employee')).filter(or_(Call.caller_ou_id.in_(ou_ids), Call.callee_ou_id.in_(ou_ids))).with_entities(func.avg(Call.duration)).scalar()
+        else:
+            total_calls = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.callee_role == 'Employee', Call.caller_role == 'Employee')).count()
+            answered_calls = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Employee', Call.caller_role == 'Employee')).count()
+            average_duration = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Employee', Call.caller_role == 'Employee')).with_entities(func.avg(Call.duration)).scalar()
+
+        unanswered_calls = total_calls - answered_calls
+
+        if not average_duration:
+            average_duration = timedelta(seconds=0)
+
+        return {"Opkald besvarede": answered_calls, "Opkald ubesvarede": unanswered_calls, "Opkald gennemsnitlig varighed": average_duration}
+
+
+def get_service_data(week=None, ou=None):
+    if week is None:
+        week = get_last_week()
+
+    screen, non_screen = None, None
+
+    with Session(get_engine()) as session:
+        if ou:
+            ous = session.query(OU).filter(OU.nexus_name == ou).all()
+            ou_ids = [ou.id for ou in ous]
+            if any([ou.children for ou in ous]):
+                screen = session.query(Service.name, func.sum(Service.visits).label('visits')).join(OU, Service.ou_id == OU.id).filter(OU.parent_id.in_(ou_ids)).filter(Service.week == week).filter(Service.screen == True).group_by(Service.name).order_by(func.sum(Service.visits).desc()).all()
+                non_screen = session.query(Service.name, func.sum(Service.visits).label('visits')).join(OU, Service.ou_id == OU.id).filter(OU.parent_id.in_(ou_ids)).filter(Service.week == week).filter(Service.screen == False).group_by(Service.name).order_by(func.sum(Service.visits).desc()).all()
+            else:
+                screen = session.query(Service).filter(Service.ou_id.in_(ou_ids)).filter(Service.week == week).filter(Service.screen == True).order_by(Service.visits.desc()).with_entities(Service.name, Service.visits).all()
+                non_screen = session.query(Service).filter(Service.ou_id.in_(ou_ids)).filter(Service.week == week).filter(Service.screen == False).order_by(Service.visits.desc()).with_entities(Service.name, Service.visits).all()
+        else:
+            screen = session.query(Service.name, func.sum(Service.visits).label('visits')).filter(Service.week == week).filter(Service.screen == True).group_by(Service.name).order_by(func.sum(Service.visits).desc()).all()
+            non_screen = session.query(Service.name, func.sum(Service.visits).label('visits')).filter(Service.week == week).filter(Service.screen == False).group_by(Service.name).order_by(func.sum(Service.visits).desc()).all()
+ 
+    screen_list = [{"name": service.name, "visits": service.visits} for service in screen]
+    non_screen_list = [{"name": service.name, "visits": service.visits} for service in non_screen]
+
+    return {"Ydelser": non_screen_list, "Skærmydelser": screen_list}

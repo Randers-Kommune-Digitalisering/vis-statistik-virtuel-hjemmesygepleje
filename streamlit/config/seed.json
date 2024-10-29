@@ -22,10 +22,9 @@
       { "vitacomm_name": "Sygepleje syd", "applikator_id": 11, "nexus_name": "Sygeplejegrupper Syd", "parent": "Område Syd" },
       { "vitacomm_name": "Sygepleje vest", "applikator_id": 15, "nexus_name": "Sygeplejegrupper Vest", "parent": "Område Vest"},
       { "vitacomm_name": "Genoptræningscenter Randers", "applikator_id": 21, "nexus_name": "Intet distrikt", "parent": "Område Syd"},
-      { "vitacomm_name": null, "applikator_id": null, "nexus_name": "Område Vest", "parent": "Områdecentre Ældre og Sundhed"},
-      { "vitacomm_name": null, "applikator_id": null, "nexus_name": "Område Nord", "parent": "Områdecentre Ældre og Sundhed"},
-      { "vitacomm_name": null, "applikator_id": null, "nexus_name": "Område Syd", "parent": "Områdecentre Ældre og Sundhed"},
-      { "vitacomm_name": null, "applikator_id": null, "nexus_name": "Områdecentre Ældre og Sundhed", "parent":"Sundhed kultur og OmsorgSundhed, Kultur og Omsorg"},
+      { "vitacomm_name": null, "applikator_id": null, "nexus_name": "Område Vest", "parent": "Sundhed kultur og OmsorgSundhed, Kultur og Omsorg"},
+      { "vitacomm_name": null, "applikator_id": null, "nexus_name": "Område Nord", "parent": "Sundhed kultur og OmsorgSundhed, Kultur og Omsorg"},
+      { "vitacomm_name": null, "applikator_id": null, "nexus_name": "Område Syd", "parent": "Sundhed kultur og OmsorgSundhed, Kultur og Omsorg"},
       { "vitacomm_name": "Sundhed, Kultur og Omsorg", "applikator_id": 2, "nexus_name": "Sundhed kultur og Omsorg", "parent": "Randers KommuneRanders kommune"},
       { "vitacomm_name": "Randers kommune", "applikator_id": 1, "nexus_name": "Randers Kommune", "parent": null}
     ]
