@@ -282,16 +282,16 @@ with Session(get_engine()) as session:
                     with st.container(border=True):
                         # st.markdown('<font size="4"> Fra uge:', unsafe_allow_html=True)
                         st.write('Fra')
-                        first_week = week_selector(get_week_before_last(), '2023-18', key='start')
+                        st.session_state.first_week = week_selector(get_week_before_last(), '2023-18', key='start', week_to_select=st.session_state.first_week)
                 with top_columns[2]:
                     # st.markdown('<font size="4"> Til uge:', unsafe_allow_html=True)
                     with st.container(border=True):
                         st.write('Til')
-                        last_week = week_selector(get_last_week(), '2023-18', key='end')
+                        st.session_state.last_week = week_selector(get_last_week(), '2023-18', key='end', week_to_select=st.session_state.last_week)
 
             # st.divider()
 
-            weeks = get_weeks(first_week, last_week)
+            weeks = get_weeks(st.session_state.first_week, st.session_state.last_week)
             data = []
             for week in weeks:
                 week_data = get_overview_data(week, ou_to_select)
