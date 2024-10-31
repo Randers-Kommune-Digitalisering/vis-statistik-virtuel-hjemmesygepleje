@@ -66,14 +66,14 @@ class Service(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(60))
     visits = Column(Integer)
-    screen = Column(Boolean)
+    type = Column(String(60))
     week = Column(String(8))
 
     ou_id = Column(Integer, ForeignKey("organization_unit.id"))
 
     ou = relationship("OU", back_populates="services", lazy='subquery')
 
-    __table_args__ = (UniqueConstraint('ou_id', 'week', 'name', 'screen', name='unique_service'),)
+    __table_args__ = (UniqueConstraint('ou_id', 'week', 'name', 'type', name='unique_service'),)
 
     def __repr__(self) -> str:
         return f"Service(id={self.id!r}, district={self.ou_id!r}, week={self.week!r}, name={self.name!r})"

@@ -1,4 +1,5 @@
 import streamlit as st
+import pandas as pd
 import streamlit_antd_components as sac
 
 from datetime import timedelta
@@ -9,9 +10,10 @@ import matplotlib.pyplot as plt
 from models import OU
 from database import get_engine
 from data import get_overview_data, get_children, get_employee_data, get_service_data
+from charts import create_service_pie_chart, create_conversion_rate_bar_chart, create_calls_bar_chart, create_use_level_bar_chart, create_duration_bar_chart
 from utils.pages import get_logo
-from utils.time import get_last_week, get_week_before_last
-import pandas as pd
+from utils.time import get_last_week, get_week_before_last, get_previous_week, get_weeks
+from utils.pages import  week_selector
 
 with Session(get_engine()) as session:
     def generate_menu_items():
@@ -52,13 +54,13 @@ with Session(get_engine()) as session:
         st.session_state['selected_menu_item'] = selected_menu_item
 
     ou_to_select = None if any(x in selected_menu_item for x in ['Omsorg', 'Kommune']) else selected_menu_item
-    last_week = get_last_week()
 
     with top_container:
         st.markdown(f'<font size="6"> {selected_menu_item}', unsafe_allow_html=True)
+        with st.expander('Vælg uge', expanded=False):
+            selected_week = week_selector(get_last_week(), '2023-18')
 
-    # TODO: Add history --  , sac.TabsItem('Historik')
-    content_tabs = sac.tabs([sac.TabsItem('Overblik'), sac.TabsItem('Medarbejdere'), sac.TabsItem('Ydelser')], color='dark', size='md', position='top', align='start', use_container_width=True)
+    content_tabs = sac.tabs([sac.TabsItem('Overblik'), sac.TabsItem('Medarbejdere'), sac.TabsItem('Ydelser'), sac.TabsItem('Historik')], color='dark', size='md', position='top', align='start', use_container_width=True)
 
     with st.spinner('Henter data...'):
         if content_tabs == 'Overblik':  
@@ -69,15 +71,15 @@ with Session(get_engine()) as session:
                 children_data = []
                 if children_of_children:
                     for child in children_of_children:
-                        children_data.append({child: get_overview_data(last_week, child)})
+                        children_data.append({child: get_overview_data(selected_week, child)})
                 else:
                     for child in children:
-                        children_data.append({child: get_overview_data(last_week, child)})
+                        children_data.append({child: get_overview_data(selected_week, child)})
 
-            data_this_week = get_overview_data(last_week, ou_to_select)
-            data_week_before_last = get_overview_data(get_week_before_last(), ou_to_select)
+            data_this_week = get_overview_data(selected_week, ou_to_select)
+            data_week_before_last = get_overview_data(get_previous_week(selected_week), ou_to_select)
 
-            st.markdown(f'<font size="5"> Uge {last_week.split("-")[1]}', unsafe_allow_html=True)
+            st.markdown(f'<font size="5"> Uge {selected_week.split("-")[1]}', unsafe_allow_html=True)
             content_top_container = st.container()
             content_bottom_container = st.container()
             with content_top_container:
@@ -131,68 +133,20 @@ with Session(get_engine()) as session:
                             nc_bottom = st.columns([1, 1])
                             with nc_bottom[0]:
                                 child_names = [list(child.keys())[0] for child in children_data if 'intet' not in list(child.keys())[0].lower()]
-                                conversion_rates = [list(child.values())[0]['Omlægningsgrad'] * 100 for child in children_data if 'intet' not in list(child.keys())[0].lower()]  # Convert to percentages
+                                conversion_rates = [list(child.values())[0]['Omlægningsgrad'] for child in children_data if 'intet' not in list(child.keys())[0].lower()]  # Convert to percentages
 
-                                df = pd.DataFrame({
-                                    'Adm. enhed': child_names,
-                                    'Omlægningsgrad (%)': conversion_rates  # Update column name to reflect percentage
-                                })
-
-                                df = df.sort_values('Adm. enhed', ascending=True)
-                                df = df.groupby('Adm. enhed', as_index=False).sum()
-
-                                fig, ax = plt.subplots()
-                                bars = ax.bar(df['Adm. enhed'], df['Omlægningsgrad (%)'])
-                                ax.set_title('Omlægningsgrad')
-                                ax.set_ylabel('Omlægningsgrad (%)')
-                                ax.set_ylim(0, max(df['Omlægningsgrad (%)']) * 1.2)  # Set y-axis limit to 10% higher than the highest percentage
-                                ax.set_xticks(range(len(df['Adm. enhed'])))
-                                ax.set_xticklabels(df['Adm. enhed'], rotation=90)  # Rotate x labels
-
-                                # Add values on bars
-                                for bar in bars:
-                                    height = bar.get_height()
-                                    ax.annotate(f'{height:.2f}%',
-                                                xy=(bar.get_x() + bar.get_width() / 2, height),
-                                                xytext=(0, 3),  # 3 points vertical offset
-                                                textcoords="offset points",
-                                                ha='center', va='bottom')
-
-                                st.pyplot(fig, use_container_width=True)
+                                chart = create_conversion_rate_bar_chart({'Enhed': child_names}, {'Omlægningsgrad': conversion_rates}, x_is_ou=True)
+                                st.altair_chart(chart, use_container_width=True)
 
                             with nc_bottom[1]:
                                 child_names = [list(child.keys())[0] for child in children_data if 'intet' not in list(child.keys())[0].lower()]
                                 answered_calls = [list(child.values())[0]['Opkald besvarede'] for child in children_data if 'intet' not in list(child.keys())[0].lower()]
 
-                                df = pd.DataFrame({
-                                    'Adm. enhed': child_names,
-                                    'Opkald besvarede': answered_calls  # Update column name to reflect percentage
-                                })
-
-                                df = df.sort_values('Adm. enhed', ascending=True)
-                                df = df.groupby('Adm. enhed', as_index=False).sum()
-
-                                fig, ax = plt.subplots()
-                                bars = ax.bar(df['Adm. enhed'], df['Opkald besvarede'])
-                                ax.set_title('Opkald besvarede')
-                                ax.set_ylabel('Opkald besvarede')
-                                ax.set_ylim(0, max(df['Opkald besvarede']) * 1.1)  # Set y-axis limit to highest number plus 10
-                                ax.set_xticks(range(len(df['Adm. enhed'])))
-                                ax.set_xticklabels(df['Adm. enhed'], rotation=90)  # Rotate x labels
-
-                                # Add values on bars
-                                for bar in bars:
-                                    height = bar.get_height()
-                                    ax.annotate(f'{height:d}',
-                                                xy=(bar.get_x() + bar.get_width() / 2, height),
-                                                xytext=(0, 3),  # 3 points vertical offset
-                                                textcoords="offset points",
-                                                ha='center', va='bottom')
-
-                                st.pyplot(fig, use_container_width=True)
+                                chart = create_calls_bar_chart({'Enhed': child_names}, {'Opkald besvarede': answered_calls}, x_is_ou=True)
+                                st.altair_chart(chart, use_container_width=True)
 
         elif content_tabs == 'Medarbejdere':
-            st.markdown(f'<font size="5"> Uge {last_week.split("-")[1]}', unsafe_allow_html=True)
+            st.markdown(f'<font size="5"> Uge {selected_week.split("-")[1]}', unsafe_allow_html=True)
             children = get_children(selected_menu_item)
 
             if children:
@@ -200,13 +154,13 @@ with Session(get_engine()) as session:
                 children_data = []
                 if children_of_children:
                     for child in children_of_children:
-                        children_data.append({child: get_overview_data(last_week, child)})
+                        children_data.append({child: get_overview_data(selected_week, child)})
                 else:
                     for child in children:
-                        children_data.append({child: get_overview_data(last_week, child)})
+                        children_data.append({child: get_overview_data(selected_week, child)})
 
-            data_this_week = get_employee_data(last_week, ou_to_select)
-            data_week_before_last = get_employee_data(get_week_before_last(), ou_to_select)
+            data_this_week = get_employee_data(selected_week, ou_to_select)
+            data_week_before_last = get_employee_data(get_previous_week(selected_week), ou_to_select)
 
             if data_this_week:
                 nc = st.columns([1, 1, 1])
@@ -242,10 +196,10 @@ with Session(get_engine()) as session:
                             st.metric(label=key, value=value, delta=delta_value, delta_color=delta_color)
 
         elif content_tabs == 'Ydelser':
-            data = get_service_data(last_week, ou_to_select)
+            data = get_service_data(selected_week, ou_to_select)
 
             if data:
-                st.markdown(f'<font size="5"> Uge {last_week.split("-")[1]}', unsafe_allow_html=True)
+                st.markdown(f'<font size="5"> Uge {selected_week.split("-")[1]}', unsafe_allow_html=True)
                 cols = st.columns(len(data))
                 # Create a unique color map for all names
                 unique_names = set()
@@ -258,7 +212,7 @@ with Session(get_engine()) as session:
                 unique_names = sorted(unique_names)
 
                 color_palette = plt.get_cmap('tab20b').colors
-                color_map = {name: color_palette[i % len(color_palette)] for i, name in enumerate(unique_names)}
+                color_map = {name: '#{:02x}{:02x}{:02x}'.format(int(color[0]*255), int(color[1]*255), int(color[2]*255)) for name, color in zip(unique_names, color_palette)}
 
                 index = 0
 
@@ -272,11 +226,11 @@ with Session(get_engine()) as session:
                             total_visits = sum(visits)
                             percentages = [(visit / total_visits) * 100 for visit in visits]
 
-                            # Filter out items with less than 3% and limit to a maximum of 9 items
+                            # Filter out items with less than 4% and limit to a maximum of 9 items
                             filtered_data = [(name, visit) for name, visit, percentage in zip(names, visits, percentages) if percentage >= 4]
                             filtered_data = sorted(filtered_data, key=lambda x: x[1], reverse=True)[:9]
-                            other_data = [(name, percentage) for name, visit, percentage in zip(names, visits, percentages) if percentage < 4 and visit > 0]
-                            other_data = {name: percentage for name, percentage in sorted(other_data, key=lambda x: x[1], reverse=True)[:11]}
+                            other_data = [(name, percentage, amount) for name, amount, percentage in zip(names, visits, percentages) if percentage < 4 and amount > 0]
+                            other_data = [(name, percentage, amount) for name, percentage, amount in sorted(other_data, key=lambda x: x[1], reverse=True)[:11]]
 
                             filtered_names, filtered_visits = zip(*filtered_data) if filtered_data else ([], [])
 
@@ -290,21 +244,50 @@ with Session(get_engine()) as session:
 
                             filtered_names, filtered_visits = zip(*filtered_data) if filtered_data else ([], [])
 
-                            fig, ax = plt.subplots()
-                            colors = [color_map[name] for name in filtered_names]
-                            ax.pie(filtered_visits, labels=filtered_names, autopct='%1.1f%%', startangle=90, colors=colors, textprops={'fontsize': 8})
-                            ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
-                            ax.set_title(f'{key}', fontsize=14, pad=20)
-
                             with cols[index]:
-                                st.pyplot(fig, use_container_width=True)
+                                # st.pyplot(fig, use_container_width=True)
+                                pie_chart = create_service_pie_chart(filtered_names, filtered_visits, key, color_map)
+                                st.altair_chart(pie_chart, use_container_width=True)
                                 if 'Andet' in filtered_names and other_data:
                                     if len(other_data) > 10:
                                         st.markdown('<font size="4"> Top 10 i andet:', unsafe_allow_html=True)
-                                        other_data.popitem()
+                                        del other_data[-1]
                                     else:
                                         st.markdown('<font size="4"> Andet:', unsafe_allow_html=True)
-                                    other_df = pd.DataFrame(list(other_data.items()), columns=['Ydelse', 'Procent'])
+                                    other_df = pd.DataFrame(other_data, columns=['Ydelse', 'Procent', 'Antal'])
                                     other_df['Procent'] = other_df['Procent'].apply(lambda x: f"{x:.1f}%")
                                     st.markdown(other_df.to_markdown(index=False))
                                 index += 1
+        elif content_tabs == 'Historik':
+            st.markdown(f'<font size="5"> Fra uge:', unsafe_allow_html=True)
+            first_week = week_selector(get_week_before_last(), '2023-18', key='start')
+            st.markdown(f'<font size="5"> Til uge:', unsafe_allow_html=True)
+            last_week = week_selector(get_last_week(), '2023-18', key='end')
+            
+            weeks = get_weeks(first_week, last_week)
+            data = []
+            for week in weeks:
+                week_data = get_overview_data(week, ou_to_select)
+                if week_data:
+                    week_data['Uge'] = week
+                    data.append(week_data)
+
+            combined_data = {}
+            for d in data:
+                for key, value in d.items():
+                    if key not in combined_data:
+                        combined_data[key] = []
+                    combined_data[key].append(value)
+
+            graph_tabs = sac.tabs([sac.TabsItem(item) for item in combined_data.keys() if 'inaktiv' not in item and item != 'Uge'])
+            chart = None
+            if graph_tabs == 'Anvendelsesgrad':
+                chart = create_use_level_bar_chart({'Uge': combined_data['Uge']}, {graph_tabs: combined_data[graph_tabs]})
+            elif graph_tabs == 'Omlægningsgrad':
+                chart = create_conversion_rate_bar_chart({'Uge': combined_data['Uge']}, {graph_tabs: combined_data[graph_tabs]})
+            elif 'varighed' in graph_tabs:
+                chart = create_duration_bar_chart({'Uge': combined_data['Uge']}, {graph_tabs: combined_data[graph_tabs]})
+            else:
+                chart = create_calls_bar_chart({'Uge': combined_data['Uge']}, {graph_tabs: combined_data[graph_tabs]})
+
+            st.altair_chart(chart, use_container_width=True)

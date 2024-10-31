@@ -80,6 +80,13 @@ def get_weeks(start_week, end_week):
         return week_list
 
 
+def get_previous_week(week):
+    year, week = map(int, week.split('-'))
+    date = datetime.date.fromisocalendar(year, week, 1) - datetime.timedelta(weeks=1)
+    previous_year, previous_week, _ = date.isocalendar()
+    return f'{previous_year}-{str(previous_week).zfill(2)}'
+
+
 def format_decimal_hours(decimal_hours):
     from datetime import timedelta
     return str(timedelta(hours=decimal_hours)).replace('days', 'døgn')

@@ -30,34 +30,54 @@ def read_bi_data():
                 week_stats_df = []
 
                 for s in xls.sheet_names:
-                    
+
                     if 'ydelser' in s:
                         districts = sess.scalars(select(OU)).all()
                         df = pd.read_excel(xls, s)
 
-                        df.dropna(how='all', inplace=True)
-                        df.dropna(how='all', axis=1, inplace=True)
-                        
-                        id_vars = []
-                        for col_name in df.columns:
-                            if df.columns.get_loc(col_name) > 0:
-                                df[col_name] = df[col_name].fillna(0).astype(int)
+                        # check if the first three columns contain the word 'besøg' - meaning it is the new data format
+                        first_three_columns = df.iloc[:, :3].map(lambda x: x.lower() if isinstance(x, str) else x)
+                        contains_visit = first_three_columns.isin(['besøg']).any().any()
+
+                        if contains_visit:
+                            df = df.dropna(axis=1, how='all')
+                            df = df.dropna(axis=0, how='all')
+                            df.columns.values[0] = 'ou_id'
+                            df.columns.values[1] = 'type'
+
+                            df['ou_id'] = df['ou_id'].apply(lambda value: 'Distrikt Tørvebryggen' if value == 'Distrikt Lindevænget' else value)
+                            df['ou_id'] = df['ou_id'].apply(lambda value: next(d for d in districts if d.nexus_name == value).id)
+
+                            df_melted = df.melt(id_vars=['ou_id', 'type'], var_name='name', value_name='visits')
+                            df_melted = df_melted.dropna(subset=['visits'])
+                            df_melted['visits'] = df_melted['visits'].astype(int)
+                            df_melted['week'] = week
+
+                            service_dfs.append(df_melted)
+                        elif week.split('-')[0] == '2024' and int(week.split('-')[1]) < 42:
+                            df.dropna(how='all', inplace=True)
+                            df.dropna(how='all', axis=1, inplace=True)
+
+                            id_vars = []
+                            for col_name in df.columns:
+                                if df.columns.get_loc(col_name) > 0:
+                                    df[col_name] = df[col_name].fillna(0).astype(int)
+                                else:
+                                    id_vars.append(col_name)
+
+                            value_vars = df.columns.difference(id_vars)
+                            df = pd.melt(df, id_vars=id_vars, value_vars=value_vars, var_name='name', value_name='visits')
+                            df.rename(columns={id_vars[0]: 'ou_id'}, inplace=True)
+                            df['week'] = week
+                            if 'skærm' in s:
+                                df['type'] = 'Skærmbesøg'
                             else:
-                                id_vars.append(col_name)
-                        
-                        value_vars = df.columns.difference(id_vars)
-                        df = pd.melt(df, id_vars=id_vars, value_vars=value_vars, var_name='name', value_name='visits')
-                        df.rename(columns={id_vars[0]: 'ou_id'}, inplace=True)
-                        df['week'] = week
-                        if 'skærm' in s:
-                            df['screen'] = True
-                        else:
-                            df['screen'] = False
+                                df['type'] = 'Besøg'
 
-                        df['ou_id'] = df['ou_id'].apply(lambda value: 'Distrikt Tørvebryggen' if value == 'Distrikt Lindevænget' else value)
-                        df['ou_id'] = df['ou_id'].apply( lambda value: next(d for d in districts if d.nexus_name == value).id)
+                            df['ou_id'] = df['ou_id'].apply(lambda value: 'Distrikt Tørvebryggen' if value == 'Distrikt Lindevænget' else value)
+                            df['ou_id'] = df['ou_id'].apply(lambda value: next(d for d in districts if d.nexus_name == value).id)
 
-                        service_dfs.append(df)
+                            service_dfs.append(df)
 
                     if 'planlagt' in s:
                         districts = sess.scalars(select(OU)).all()
@@ -78,7 +98,7 @@ def read_bi_data():
                         names = ['planned_hours', 'residents_with_planned_visits', 'planned_visits']
                         if 'skærm' in s:
                             names = ['screen_' + n for n in names]
-                        
+
                         df.rename(columns={id_vars[2]: names[0]}, inplace=True)
                         df.rename(columns={id_vars[3]: names[1]}, inplace=True)
                         df.rename(columns={id_vars[4]: names[2]}, inplace=True)
@@ -88,7 +108,7 @@ def read_bi_data():
                         df['ou_id'] = df['ou_id'].apply( lambda value: next(d for d in districts if d.nexus_name == value).id )
 
                         week_stats_df.append(df)
-                        
+
                     if 'borgere' in s:
                         districts = sess.scalars(select(OU)).all()
                         df = pd.read_excel(xls, s)
@@ -118,7 +138,7 @@ def read_bi_data():
                         ##########################################################
                         df['ou_id'] = df['ou_id'].apply(lambda value: 'Distrikt Tørvebryggen' if value == 'Distrikt Lindevænget' else value)
                         df['ou_id'] = df['ou_id'].apply(lambda value: next(d for d in districts if d.nexus_name == value).id)
-                        
+
                         week_stats_df.append(df)
 
                 week_stats_df = ft.reduce(lambda left, right: pd.merge(left, right, on='ou_id'), week_stats_df)
@@ -137,17 +157,18 @@ def read_bi_data():
                         sess.rollback()
                 # add_or_update_multiple(week_stats)
 
-                service_df = pd.concat(service_dfs)
+                if service_dfs:
+                    service_df = pd.concat(service_dfs)
 
-                services = []
+                    services = []
 
-                for _, row in service_df.iterrows():
-                    services.append(Service(**row))
+                    for _, row in service_df.iterrows():
+                        services.append(Service(**row))
 
-                for instance in services:
-                    try:
-                        sess.merge(instance)
-                        sess.commit()
-                    except exc.IntegrityError:
-                        sess.rollback()
-                # add_or_update_multiple(services)
+                    for instance in services:
+                        try:
+                            sess.merge(instance)
+                            sess.commit()
+                        except exc.IntegrityError:
+                            sess.rollback()
+                    # add_or_update_multiple(services)
