@@ -13,7 +13,16 @@ from data import get_overview_data, get_children, get_employee_data, get_service
 from charts import create_service_pie_chart, create_conversion_rate_bar_chart, create_calls_bar_chart, create_use_level_bar_chart, create_duration_bar_chart
 from utils.pages import get_logo
 from utils.time import get_last_week, get_week_before_last, get_previous_week, get_weeks
-from utils.pages import  week_selector
+from utils.pages import week_selector
+
+if "selected_week" not in st.session_state:
+    st.session_state.selected_week = get_last_week()
+
+if "first_week" not in st.session_state:
+    st.session_state.first_week = get_week_before_last()
+
+if "last_week" not in st.session_state:
+    st.session_state.last_week = get_last_week()
 
 with Session(get_engine()) as session:
     def generate_menu_items():
@@ -40,7 +49,7 @@ with Session(get_engine()) as session:
 
     st.set_page_config(page_title="Statistikmodul", page_icon="assets/favicon.ico", layout="wide")
     st.markdown(get_logo(), unsafe_allow_html=True)
-    top_container = st.container()
+    top_container = st.empty() # st.container()
 
     with st.sidebar:
         selected_menu_item = sac.tree(generate_menu_items(), color='dark', align='start', icon=None, show_line=False, checkbox=False, checkbox_strict=True, index=1, open_index=[0, 1])  # indent=10, color='black', index=2, open_index=[0, 1])
@@ -55,10 +64,14 @@ with Session(get_engine()) as session:
 
     ou_to_select = None if any(x in selected_menu_item for x in ['Omsorg', 'Kommune']) else selected_menu_item
 
-    with top_container:
-        st.markdown(f'<font size="6"> {selected_menu_item}', unsafe_allow_html=True)
-        with st.expander('Vælg uge', expanded=False):
-            selected_week = week_selector(get_last_week(), '2023-18')
+    with top_container.empty():
+        top_columns = st.columns([1, 1, 1])
+        with top_columns[2]:
+            # with st.expander('Vælg uge', expanded=False):
+            with st.container(border=True):
+                st.session_state.selected_week = week_selector(get_last_week(), '2023-18', week_to_select=st.session_state.selected_week)
+        with top_columns[0]:
+            st.markdown(f'<font size="6"> {selected_menu_item} - Uge {st.session_state.selected_week.split("-")[1].lstrip("0")}', unsafe_allow_html=True)
 
     content_tabs = sac.tabs([sac.TabsItem('Overblik'), sac.TabsItem('Medarbejdere'), sac.TabsItem('Ydelser'), sac.TabsItem('Historik')], color='dark', size='md', position='top', align='start', use_container_width=True)
 
@@ -71,15 +84,15 @@ with Session(get_engine()) as session:
                 children_data = []
                 if children_of_children:
                     for child in children_of_children:
-                        children_data.append({child: get_overview_data(selected_week, child)})
+                        children_data.append({child: get_overview_data(st.session_state.selected_week, child)})
                 else:
                     for child in children:
-                        children_data.append({child: get_overview_data(selected_week, child)})
+                        children_data.append({child: get_overview_data(st.session_state.selected_week, child)})
 
-            data_this_week = get_overview_data(selected_week, ou_to_select)
-            data_week_before_last = get_overview_data(get_previous_week(selected_week), ou_to_select)
+            data_this_week = get_overview_data(st.session_state.selected_week, ou_to_select)
+            data_week_before_last = get_overview_data(get_previous_week(st.session_state.selected_week), ou_to_select)
 
-            st.markdown(f'<font size="5"> Uge {selected_week.split("-")[1]}', unsafe_allow_html=True)
+            # st.markdown(f'<font size="5"> Uge {selected_week.split("-")[1]}', unsafe_allow_html=True)
             content_top_container = st.container()
             content_bottom_container = st.container()
             with content_top_container:
@@ -146,7 +159,7 @@ with Session(get_engine()) as session:
                                 st.altair_chart(chart, use_container_width=True)
 
         elif content_tabs == 'Medarbejdere':
-            st.markdown(f'<font size="5"> Uge {selected_week.split("-")[1]}', unsafe_allow_html=True)
+            # st.markdown(f'<font size="5"> Uge {selected_week.split("-")[1]}', unsafe_allow_html=True)
             children = get_children(selected_menu_item)
 
             if children:
@@ -154,13 +167,13 @@ with Session(get_engine()) as session:
                 children_data = []
                 if children_of_children:
                     for child in children_of_children:
-                        children_data.append({child: get_overview_data(selected_week, child)})
+                        children_data.append({child: get_overview_data(st.session_state.selected_week, child)})
                 else:
                     for child in children:
-                        children_data.append({child: get_overview_data(selected_week, child)})
+                        children_data.append({child: get_overview_data(st.session_state.selected_week, child)})
 
-            data_this_week = get_employee_data(selected_week, ou_to_select)
-            data_week_before_last = get_employee_data(get_previous_week(selected_week), ou_to_select)
+            data_this_week = get_employee_data(st.session_state.selected_week, ou_to_select)
+            data_week_before_last = get_employee_data(get_previous_week(st.session_state.selected_week), ou_to_select)
 
             if data_this_week:
                 nc = st.columns([1, 1, 1])
@@ -196,10 +209,10 @@ with Session(get_engine()) as session:
                             st.metric(label=key, value=value, delta=delta_value, delta_color=delta_color)
 
         elif content_tabs == 'Ydelser':
-            data = get_service_data(selected_week, ou_to_select)
+            data = get_service_data(st.session_state.selected_week, ou_to_select)
 
             if data:
-                st.markdown(f'<font size="5"> Uge {selected_week.split("-")[1]}', unsafe_allow_html=True)
+                # st.markdown(f'<font size="5"> Uge {selected_week.split("-")[1]}', unsafe_allow_html=True)
                 cols = st.columns(len(data))
                 # Create a unique color map for all names
                 unique_names = set()
@@ -259,11 +272,25 @@ with Session(get_engine()) as session:
                                     st.markdown(other_df.to_markdown(index=False))
                                 index += 1
         elif content_tabs == 'Historik':
-            st.markdown(f'<font size="5"> Fra uge:', unsafe_allow_html=True)
-            first_week = week_selector(get_week_before_last(), '2023-18', key='start')
-            st.markdown(f'<font size="5"> Til uge:', unsafe_allow_html=True)
-            last_week = week_selector(get_last_week(), '2023-18', key='end')
-            
+            st.markdown(f'<font size="5"> {content_tabs}', unsafe_allow_html=True)
+            # top_container.empty()
+            with top_container.empty():
+                top_columns = st.columns([1, 1, 1])
+                with top_columns[0]:
+                    st.markdown(f'<font size="6"> {selected_menu_item}', unsafe_allow_html=True)
+                with top_columns[1]:
+                    with st.container(border=True):
+                        # st.markdown('<font size="4"> Fra uge:', unsafe_allow_html=True)
+                        st.write('Fra')
+                        first_week = week_selector(get_week_before_last(), '2023-18', key='start')
+                with top_columns[2]:
+                    # st.markdown('<font size="4"> Til uge:', unsafe_allow_html=True)
+                    with st.container(border=True):
+                        st.write('Til')
+                        last_week = week_selector(get_last_week(), '2023-18', key='end')
+
+            # st.divider()
+
             weeks = get_weeks(first_week, last_week)
             data = []
             for week in weeks:
@@ -279,7 +306,7 @@ with Session(get_engine()) as session:
                         combined_data[key] = []
                     combined_data[key].append(value)
 
-            graph_tabs = sac.tabs([sac.TabsItem(item) for item in combined_data.keys() if 'inaktiv' not in item and item != 'Uge'])
+            graph_tabs = sac.tabs([sac.TabsItem(item) for item in combined_data.keys() if 'inaktiv' not in item and item != 'Uge'], color='dark', size='sm', position='top', align='start', use_container_width=True)
             chart = None
             if graph_tabs == 'Anvendelsesgrad':
                 chart = create_use_level_bar_chart({'Uge': combined_data['Uge']}, {graph_tabs: combined_data[graph_tabs]})

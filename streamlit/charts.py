@@ -65,7 +65,7 @@ def create_conversion_rate_bar_chart(x: dict, y: dict, min_height: float = 0.2, 
         baseline='bottom',
         dy=-3  # Nudge text above bars
     ).encode(
-        text=alt.Text(f'{y_key}:Q', format='.2%')
+        text=alt.Text(f'{y_key}:Q', format=',.2~%')
     )
 
     chart = (bars + text).configure(
