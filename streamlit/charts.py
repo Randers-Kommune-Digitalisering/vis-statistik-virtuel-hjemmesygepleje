@@ -29,10 +29,14 @@ def create_service_pie_chart(filtered_names, filtered_visits, key, color_map):
         color=alt.Color(field='Ydelse', type='nominal', scale=alt.Scale(domain=filtered_names, range=list(data['colors']))),
         tooltip=['Ydelse', 'Antal', 'Procent']
     ).properties(
-        title=f'{key} - total: {total_visits}',
+        title=f'{key}',
+    ).configure_title(
+        fontSize=18,
+        anchor='start',
+        offset=5
     )
 
-    return pie_chart
+    return pie_chart, total_visits
 
 
 # x and y are dicts e.g. {'axis-name': [1,2,3]} or {'axis-name': ["a", "b", "c"]}

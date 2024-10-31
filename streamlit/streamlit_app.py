@@ -258,9 +258,10 @@ with Session(get_engine()) as session:
                             filtered_names, filtered_visits = zip(*filtered_data) if filtered_data else ([], [])
 
                             with cols[index]:
-                                # st.pyplot(fig, use_container_width=True)
-                                pie_chart = create_service_pie_chart(filtered_names, filtered_visits, key, color_map)
+                                chart_name = f'Planlagte {key}'
+                                pie_chart, total_amount = create_service_pie_chart(filtered_names, filtered_visits, chart_name, color_map)
                                 st.altair_chart(pie_chart, use_container_width=True)
+                                st.markdown(f'<b>{chart_name} i alt: {total_amount}</b>', unsafe_allow_html=True)
                                 if 'Andet' in filtered_names and other_data:
                                     if len(other_data) > 10:
                                         st.markdown('<font size="4"> Top 10 i andet:', unsafe_allow_html=True)
