@@ -1,13 +1,12 @@
 import warnings
 import io
 import pandas as pd
-import functools as ft
 
 from sqlalchemy import select, exc
 from sqlalchemy.orm import Session
 
 from models import OU, Service, WeeklyStat
-from database import get_engine, add_or_update_multiple
+from database import get_engine
 from sftp import list_all_files
 from config.settings import SFTP_PATH
 

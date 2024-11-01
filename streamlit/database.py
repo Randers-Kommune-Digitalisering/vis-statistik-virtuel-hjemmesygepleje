@@ -21,7 +21,7 @@ def get_engine():
     return sqlalchemy.create_engine(f'postgresql+psycopg2://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_DATABASE}')
 
 
-def create_db():
+def create_db(): 
     Base.metadata.create_all(get_engine())
 
 
@@ -403,12 +403,14 @@ def update_call_db(days, start=None, end=None):
     call_log = get_call_log_api(days, start, end)
 
     data = StringIO(call_log)
+
     df = pd.read_csv(data, sep=';', dtype={"Caller's CPR": str, "Callee's CPR": str})
+
+    df = df.drop(columns=['CallerAlias', 'Media info'])    
 
     df.dropna(how='all', inplace=True)
     df.dropna(how='all', axis=1, inplace=True)
 
-    df = df.drop(columns=['CallerAlias', 'Media info'])
     df.columns = [re.sub(r"'s|\(|\)", "", c.lower().replace(' ', '_')) for c in list(df)]
 
     with Session(get_engine()) as sess:

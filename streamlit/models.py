@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, String, Double, Integer, Boolean, DateTime, Time, DDL, UniqueConstraint, event
+from sqlalchemy import Column, ForeignKey, String, Double, Integer, DateTime, Time, DDL, UniqueConstraint, event
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import relationship
 # from sqlalchemy.schema import UniqueConstraint

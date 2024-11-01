@@ -1,5 +1,4 @@
 import sys
-import threading
 from datetime import datetime
 from streamlit.web import cli as stcli
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -36,5 +35,5 @@ if __name__ == '__main__':
     sched.add_job(daily_job, 'cron', hour='12', minute='45')
     sched.start()
 
-    sys.argv = ["streamlit", "run", "streamlit_app.py", "--client.toolbarMode=minimal", "--server.port=8080"] # "--server.address=0.0.0.0"]
+    sys.argv = ["streamlit", "run", "streamlit_app.py", "--client.toolbarMode=minimal", "--server.port=8080"]
     sys.exit(stcli.main())

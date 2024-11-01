@@ -7,8 +7,7 @@ from sqlalchemy.orm import Session
 
 from models import OU, Call, WeeklyStat, Service
 from database import get_calls, get_engine
-from utils.time import get_week_start_and_end, get_last_week, format_decimal_hours
-from utils.ou import get_district_vitacomm, get_nexus_district
+from utils.time import get_week_start_and_end, get_last_week
 from utils.call import only_employee_to_resident, only_answered_calls
 
 
