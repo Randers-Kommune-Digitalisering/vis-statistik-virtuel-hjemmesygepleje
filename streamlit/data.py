@@ -7,8 +7,7 @@ from sqlalchemy.orm import Session
 
 from models import OU, Call, WeeklyStat, Service
 from database import get_calls, get_engine
-from utils.time import get_week_start_and_end, get_last_week, format_decimal_hours
-from utils.ou import get_district_vitacomm, get_nexus_district
+from utils.time import get_week_start_and_end, get_last_week
 from utils.call import only_employee_to_resident, only_answered_calls
 
 
@@ -226,23 +225,27 @@ def get_service_data(week=None, ou=None):
     if week is None:
         week = get_last_week()
 
-    screen, non_screen = None, None
+    screen_visit, visit, call_visit = None, None, None
 
     with Session(get_engine()) as session:
         if ou:
             ous = session.query(OU).filter(OU.nexus_name == ou).all()
             ou_ids = [ou.id for ou in ous]
             if any([ou.children for ou in ous]):
-                screen = session.query(Service.name, func.sum(Service.visits).label('visits')).join(OU, Service.ou_id == OU.id).filter(OU.parent_id.in_(ou_ids)).filter(Service.week == week).filter(Service.screen == True).group_by(Service.name).order_by(func.sum(Service.visits).desc()).all()
-                non_screen = session.query(Service.name, func.sum(Service.visits).label('visits')).join(OU, Service.ou_id == OU.id).filter(OU.parent_id.in_(ou_ids)).filter(Service.week == week).filter(Service.screen == False).group_by(Service.name).order_by(func.sum(Service.visits).desc()).all()
+                screen_visit = session.query(Service.name, func.sum(Service.visits).label('visits')).join(OU, Service.ou_id == OU.id).filter(OU.parent_id.in_(ou_ids)).filter(Service.week == week).filter(Service.type == "Skærmbesøg").group_by(Service.name).order_by(func.sum(Service.visits).desc()).all()
+                visit = session.query(Service.name, func.sum(Service.visits).label('visits')).join(OU, Service.ou_id == OU.id).filter(OU.parent_id.in_(ou_ids)).filter(Service.week == week).filter(Service.type == "Besøg").group_by(Service.name).order_by(func.sum(Service.visits).desc()).all()
+                call_visit = session.query(Service.name, func.sum(Service.visits).label('visits')).join(OU, Service.ou_id == OU.id).filter(OU.parent_id.in_(ou_ids)).filter(Service.week == week).filter(Service.type == "Telefonopkald").group_by(Service.name).order_by(func.sum(Service.visits).desc()).all()
             else:
-                screen = session.query(Service).filter(Service.ou_id.in_(ou_ids)).filter(Service.week == week).filter(Service.screen == True).order_by(Service.visits.desc()).with_entities(Service.name, Service.visits).all()
-                non_screen = session.query(Service).filter(Service.ou_id.in_(ou_ids)).filter(Service.week == week).filter(Service.screen == False).order_by(Service.visits.desc()).with_entities(Service.name, Service.visits).all()
+                screen_visit = session.query(Service).filter(Service.ou_id.in_(ou_ids)).filter(Service.week == week).filter(Service.type == "Skærmbesøg").order_by(Service.visits.desc()).with_entities(Service.name, Service.visits).all()
+                visit = session.query(Service).filter(Service.ou_id.in_(ou_ids)).filter(Service.week == week).filter(Service.type == "Besøg").order_by(Service.visits.desc()).with_entities(Service.name, Service.visits).all()
+                call_visit = session.query(Service).filter(Service.ou_id.in_(ou_ids)).filter(Service.week == week).filter(Service.type == "Telefonopkald").order_by(Service.visits.desc()).with_entities(Service.name, Service.visits).all()
         else:
-            screen = session.query(Service.name, func.sum(Service.visits).label('visits')).filter(Service.week == week).filter(Service.screen == True).group_by(Service.name).order_by(func.sum(Service.visits).desc()).all()
-            non_screen = session.query(Service.name, func.sum(Service.visits).label('visits')).filter(Service.week == week).filter(Service.screen == False).group_by(Service.name).order_by(func.sum(Service.visits).desc()).all()
- 
-    screen_list = [{"name": service.name, "visits": service.visits} for service in screen]
-    non_screen_list = [{"name": service.name, "visits": service.visits} for service in non_screen]
+            screen_visit = session.query(Service.name, func.sum(Service.visits).label('visits')).filter(Service.week == week).filter(Service.type == "Skærmbesøg").group_by(Service.name).order_by(func.sum(Service.visits).desc()).all()
+            visit = session.query(Service.name, func.sum(Service.visits).label('visits')).filter(Service.week == week).filter(Service.type == "Besøg").group_by(Service.name).order_by(func.sum(Service.visits).desc()).all()
+            call_visit = session.query(Service.name, func.sum(Service.visits).label('visits')).filter(Service.week == week).filter(Service.type == "Telefonopkald").group_by(Service.name).order_by(func.sum(Service.visits).desc()).all()
 
-    return {"Ydelser": non_screen_list, "Skærmydelser": screen_list}
+    screen_visit_list = [{"name": service.name, "visits": service.visits} for service in screen_visit]
+    visit_list = [{"name": service.name, "visits": service.visits} for service in visit]
+    call_visit_list = [{"name": service.name, "visits": service.visits} for service in call_visit]
+
+    return {"Besøg": visit_list, "Skærmbesøg": screen_visit_list, "Telefonopkald": call_visit_list}

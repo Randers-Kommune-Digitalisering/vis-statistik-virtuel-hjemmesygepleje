@@ -3,6 +3,7 @@ from datetime import date
 
 from utils.time import get_week_start_and_end, last_week_for_year
 
+
 def get_logo():
     return """
         <style>
@@ -11,11 +12,11 @@ def get_logo():
                 background-size: 200px 100px; /* Sets the background image size */
                 background-repeat: no-repeat; /* Prevents the image from repeating */
                 background-position: left 2rem top 1rem; /* Positions the image with a left margin of 1rem */
-                background-origin: content-box; /* Ensures the position is relative to the content box */
-                
+                background-origin: content-box; /* Ensures the position is relative to the content box */                
             }
         </style>
     """
+
 
 def font_sizes():
     st.markdown("""<style>
@@ -27,17 +28,22 @@ def font_sizes():
         }
     </style>""", unsafe_allow_html=True)
 
-def week_selector(week_str, min_week_str, key='', delta_week_index=None):
+
+def week_selector(week_str, min_week_str, key='', week_to_select=None, delta_week_index=None):
     min_year, min_week = [int(x) for x in min_week_str.split('-')]
     default_year, default_week = [int(x) for x in week_str.split('-')]
-    
+
     year_range = sorted([default_year - i for i in range((default_year - min_year + 1))], reverse=True)
 
-    week_cont, year_cont, date_cont = st.columns(3)
+    week_cont, year_cont, dates_cont = st.columns(3)
 
     with year_cont:
-        selected_year = st.selectbox('År', year_range, index=year_range.index(default_year), key=key + 'year')
-    
+        if week_to_select:
+            index = year_range.index(int(week_to_select.split('-')[0]))
+        else:
+            index = year_range.index(default_year)
+        selected_year = st.selectbox('År', year_range, index=index, key=key + 'year')
+
     if selected_year == min_year:
         start_week = min_week
     else:
@@ -46,29 +52,64 @@ def week_selector(week_str, min_week_str, key='', delta_week_index=None):
     if selected_year == default_year:
         end_week = default_week + 1
     else:
-        end_week = last_week_for_year(selected_year)
+        end_week = last_week_for_year(selected_year) + 1
 
-    if selected_year == default_year:
-        index = 1
-    else:
-        index = 0
-
-    week_numbers = sorted([i for i in range(start_week, end_week + 1)], reverse=True)
+    week_numbers = sorted([i for i in range(start_week, end_week)], reverse=True)
 
     with week_cont:
+        index = 0
+
         if delta_week_index:
             week = week_numbers[index]-delta_week_index if week_numbers[index]-delta_week_index > 0 else 0
             index = week_numbers.index(week)
-        
+        if week_to_select:
+            index = week_numbers.index(int(week_to_select.split('-')[1]))
+
         selected_week = st.selectbox('Uge', week_numbers, index=index, key=key + 'week')
 
-    start_of_week, end_of_week = get_week_start_and_end(f"{selected_year}-{selected_week}")
+    with dates_cont:
+        start_of_week, end_of_week = get_week_start_and_end(f"{selected_year}-{selected_week}")
+        st.write('')
+        st.write('')
+        # st.write(f'({start_of_week.strftime("%d/%m-%Y")} - {end_of_week.strftime("%d/%m-%Y")})')
+        st.markdown(f'<font size="2"> ({start_of_week.strftime("%d/%m-%Y")} - {end_of_week.strftime("%d/%m-%Y")})', unsafe_allow_html=True)
 
-    with date_cont:
-        st.write('')
-        st.write('')
-        st.write(f'{start_of_week.strftime("%d/%m-%Y")} - {end_of_week.strftime("%d/%m-%Y")}')
+    # st.markdown("""
+    #     <style>
+    #     .container {
+    #         display: flex;
+    #         justify-content: space-between;
+    #         width: 100%;
+    #     }
+    #     .left {
+    #         text-align: left;
+    #         width: 50%;
+    #     }
+    #     .right {
+    #         text-align: right;
+    #         width: 50%;
+    #     }
+    #     </style>
+    #     """, unsafe_allow_html=True)
+
+    # # week_start_div = f'<div class="left">Første dag i uge {start_of_week.strftime("%d/%m-%Y")}</div>'
+    # # week_end_div = f'<div class="right">Sidste dag i uge {end_of_week.strftime("%d/%m-%Y")}</div>'
+
+    # # if hide_week_start:
+    # #     week_start_div = '<div class="left"></div>'
+
+    # # if hide_week_end:
+    # #     week_end_div = '<div class="right"></div>'
+
+    # # st.markdown(f"""
+    # #     <div class="container">
+    # #         {week_start_div}
+    # #         {week_end_div}
+    # #     </div>
+    # #     """, unsafe_allow_html=True)
 
     week = f'{selected_year}-{str(selected_week).zfill(2)}'
-   
+
+    st.write('')
+
     return week
