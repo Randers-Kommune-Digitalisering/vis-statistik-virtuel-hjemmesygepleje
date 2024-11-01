@@ -1,0 +1,17 @@
+altair==5.2.0
+APScheduler==3.10.4
+matplotlib==3.8.3
+openpyxl==3.1.2
+pandas==2.2.0
+psycopg2
+pysftp==0.2.9
+python-dateutil==2.8.2
+python-dotenv==1.0.1
+pytz==2024.1
+requests==2.31.0
+SQLAlchemy==2.0.27
+st-pages==0.4.5
+streamlit==1.29.0
+streamlit-antd-components
+tabulate
+tornado==6.4
