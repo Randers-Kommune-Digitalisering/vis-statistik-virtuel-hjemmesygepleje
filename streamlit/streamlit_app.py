@@ -319,7 +319,8 @@ with Session(get_engine()) as session:
             if graph_tabs == 'Anvendelsesgrad':
                 chart = create_use_level_bar_chart({'Uge': combined_data['Uge']}, {graph_tabs: combined_data[graph_tabs]})
             elif graph_tabs == 'Omlægningsgrad':
-                chart = create_conversion_rate_bar_chart({'Uge': combined_data['Uge']}, {graph_tabs: combined_data[graph_tabs]})
+                data = [0 if isinstance(value, str) else value for value in combined_data[graph_tabs]]
+                chart = create_conversion_rate_bar_chart({'Uge': combined_data['Uge']}, {graph_tabs: data})
             elif 'varighed' in graph_tabs:
                 chart = create_duration_bar_chart({'Uge': combined_data['Uge']}, {graph_tabs: combined_data[graph_tabs]})
             else:
