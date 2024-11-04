@@ -114,8 +114,11 @@ with Session(get_engine()) as session:
                             delta_value = data_this_week[key] - data_week_before_last[key] 
 
                         if 'Omlægningsgrad' in key:
-                            value = f"{value * 100:.2f}%"
-                            delta_value = f"{delta_value * 100:.2f}%"
+                            if type(value) is str:
+                                delta_value = None
+                            else:
+                                value = f"{value * 100:.2f}%"
+                                delta_value = f"{delta_value * 100:.2f}%"
 
                         if 'Anvendelsesgrad' in key:
                             delta_value = round(value - old_value, 2)
@@ -148,8 +151,12 @@ with Session(get_engine()) as session:
                                 child_names = [list(child.keys())[0] for child in children_data if 'intet' not in list(child.keys())[0].lower()]
                                 conversion_rates = [list(child.values())[0]['Omlægningsgrad'] for child in children_data if 'intet' not in list(child.keys())[0].lower()]  # Convert to percentages
 
-                                chart = create_conversion_rate_bar_chart({'Enhed': child_names}, {'Omlægningsgrad': conversion_rates}, x_is_ou=True)
-                                st.altair_chart(chart, use_container_width=True)
+                                if all(isinstance(rate, str) for rate in conversion_rates):
+                                    pass
+                                else:
+                                    conversion_rates = [0 if isinstance(rate, str) else rate for rate in conversion_rates]
+                                    chart = create_conversion_rate_bar_chart({'Enhed': child_names}, {'Omlægningsgrad': conversion_rates}, x_is_ou=True)
+                                    st.altair_chart(chart, use_container_width=True)
 
                             with nc_bottom[1]:
                                 child_names = [list(child.keys())[0] for child in children_data if 'intet' not in list(child.keys())[0].lower()]

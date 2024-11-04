@@ -171,10 +171,12 @@ def get_overview_data(week=None, ou=None):
         unanswered_calls = total_calls - answered_calls
 
         if not all_residents:
-            all_residents = 0
+            all_residents = '-'
 
         if all_residents == 0:
             conversion_rate = 0
+        elif all_residents == '-':
+            conversion_rate = '-'
         else:
             conversion_rate = active_residents / all_residents
 
@@ -186,7 +188,7 @@ def get_overview_data(week=None, ou=None):
         if not average_duration:
             average_duration = timedelta(seconds=0)
 
-        return {"Opkald besvarede": answered_calls, "Opkald ubesvarede": unanswered_calls, "Opkald gennemsnitlig varighed": average_duration, "Borgere aktive": active_residents, "Borgere inaktive": '-', "Anvendelsesgrad": use_level, "Omlægningsgrad": conversion_rate}  # , "active_residents_test": active_residents_test}
+        return {"Opkald besvarede": answered_calls, "Opkald ubesvarede": unanswered_calls, "Opkald gennemsnitlig varighed": average_duration, "Borgere aktive": active_residents, "Anvendelsesgrad": use_level, "Omlægningsgrad": conversion_rate}  # , "active_residents_test": active_residents_test}
 
 
 def get_employee_data(week=None, ou=None):
