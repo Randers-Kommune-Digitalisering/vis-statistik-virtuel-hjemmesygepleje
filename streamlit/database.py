@@ -3,6 +3,7 @@ import importlib
 import sqlalchemy
 import datetime
 import re
+import urllib.parse
 import pandas as pd
 
 from sqlalchemy import UniqueConstraint, exc, inspect, text, select
@@ -18,7 +19,7 @@ from config.settings import DB_USER, DB_PASS, DB_HOST, DB_PORT, DB_DATABASE, SEE
 
 
 def get_engine():
-    return sqlalchemy.create_engine(f'postgresql+psycopg2://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_DATABASE}')
+    return sqlalchemy.create_engine(f'postgresql+psycopg2://{urllib.parse.quote_plus(DB_USER)}:{urllib.parse.quote_plus(DB_PASS)}@{urllib.parse.quote_plus(DB_HOST)}:{urllib.parse.quote_plus(DB_PORT)}/{urllib.parse.quote_plus(DB_DATABASE)}')
 
 
 def create_db(): 
