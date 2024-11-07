@@ -265,7 +265,7 @@ with Session(get_engine()) as session:
                             filtered_names, filtered_visits = zip(*filtered_data) if filtered_data else ([], [])
 
                             with cols[index]:
-                                chart_name = f'Planlagte {key}'
+                                chart_name = f'Planlagte ydelser ({key.lower()})'
                                 pie_chart, total_amount = create_service_pie_chart(filtered_names, filtered_visits, chart_name, color_map)
                                 st.altair_chart(pie_chart, use_container_width=True)
                                 st.markdown(f'<b>{chart_name} i alt: {total_amount}</b>', unsafe_allow_html=True)
