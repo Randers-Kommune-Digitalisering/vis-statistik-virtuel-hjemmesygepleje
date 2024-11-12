@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 from models import OU
 from database import get_engine
-from data import get_overview_data, get_children, get_employee_data, get_service_data
+from data import get_overview_data, get_children, get_employee_data, get_service_data, get_filtered_overview_data, get_filtered_employee_data, get_filtered_service_data
 from charts import create_service_pie_chart, create_conversion_rate_bar_chart, create_calls_bar_chart, create_use_level_bar_chart, create_duration_bar_chart
 from utils.pages import get_logo
 from utils.time import get_last_week, get_week_before_last, get_previous_week, get_weeks
@@ -33,23 +33,36 @@ with Session(get_engine()) as session:
             if ou.nexus_name in added_items:
                 return None
 
-            children = [generate_menu_item(child) for child in ou.children if 'intet' not in child.nexus_name.lower()] if ou.children else None
-            # if any(x in ou.nexus_name for x in ['Vest', 'Nord', 'Syd']) and children:
-            #     children.insert(0, sac.TreeItem(ou.nexus_name, description='Område', children=None, tag=[sac.Tag('Område', color='black')]))
-            # elif 'Omsorg' in ou.nexus_name:
-            #     children.insert(0, sac.TreeItem(ou.nexus_name, description='Alle', children=None, tag=[sac.Tag('Alle', color='black')]))
+            # children = [generate_menu_item(child) for child in ou.children if 'intet' not in child.nexus_name.lower()] if ou.children else None
+            children = [generate_menu_item(child) for child in ou.children if all(s not in child.nexus_name.lower() for s in ['intet', 'borgerteam', 'sygeplejegruppe'])] if ou.children else None
+
+            if 'kultur og omsorg' in ou.nexus_name.lower():
+                # Borgerteams
+                borgerteams = session.query(OU.nexus_name).filter(OU.nexus_name.like('%Borgerteam%')).all()
+                unique_borgerteams = list(set(borgerteam[0] for borgerteam in borgerteams))
+                borgerteam_item = sac.TreeItem('Borgerteam', children=[sac.TreeItem(borgerteam) for borgerteam in unique_borgerteams])
+                children.append(borgerteam_item)
+
+                # Sygeplejegrupper
+                sygeplejegrupper = session.query(OU.nexus_name).filter(OU.nexus_name.like('%Sygeplejegruppe%')).all()
+                unique_sygeplejegrupper = list(set(sygeplejegruppe[0] for sygeplejegruppe in sygeplejegrupper))
+                sygeplejegrupper_item = sac.TreeItem('Sygeplejegrupper', children=[sac.TreeItem(sygeplejegruppe) for sygeplejegruppe in unique_sygeplejegrupper])
+                children.append(sygeplejegrupper_item)
+
             if children:
                 added_items.add(ou.nexus_name)
                 return sac.TreeItem(ou.nexus_name, children=[child for child in children if child is not None])
+
             added_items.add(ou.nexus_name)
             return sac.TreeItem(ou.nexus_name)
 
         menu_items = [generate_menu_item(top)]
+
         return menu_items
 
     st.set_page_config(page_title="Statistikmodul", page_icon="assets/favicon.ico", layout="wide")
     st.markdown(get_logo(), unsafe_allow_html=True)
-    top_container = st.empty() # st.container()
+    top_container = st.empty()
 
     with st.sidebar:
         selected_menu_item = sac.tree(generate_menu_items(), color='dark', align='start', icon=None, show_line=False, checkbox=False, checkbox_strict=True, index=1, open_index=[0, 1])  # indent=10, color='black', index=2, open_index=[0, 1])
@@ -77,22 +90,56 @@ with Session(get_engine()) as session:
 
     with st.spinner('Henter data...'):
         if content_tabs == 'Overblik':  
-            children = get_children(selected_menu_item)
+            # start old way (correct way) #
+            # children = get_children(selected_menu_item)
+
+            # if children:
+            #     children_of_children = [item for child in children for item in get_children(child)]
+
+            #     children_data = []
+            #     if children_of_children:
+            #         for child in children_of_children:
+            #             children_data.append({child: get_overview_data(st.session_state.selected_week, child)})
+            #     else:
+            #         for child in children:
+            #             children_data.append({child: get_overview_data(st.session_state.selected_week, child)})
+
+            # data_this_week = get_overview_data(st.session_state.selected_week, ou_to_select)
+            # data_week_before_last = get_overview_data(get_previous_week(st.session_state.selected_week), ou_to_select)
+            # end old way #
+
+            # start new way (hacky) #
+            if 'kultur og omsorg' in selected_menu_item.lower():
+                children = get_children(selected_menu_item)
+            else:
+                children = get_children(selected_menu_item, True)
 
             if children:
-                children_of_children = [item for child in children for item in get_children(child)]
+                if 'kultur og omsorg' in selected_menu_item.lower():
+                    children_of_children = [item for child in children for item in get_children(child)]
+                else:
+                    children_of_children = [item for child in children for item in get_children(child, True)]
+
                 children_data = []
                 if children_of_children:
                     for child in children_of_children:
-                        children_data.append({child: get_overview_data(st.session_state.selected_week, child)})
+                        children_data.append({child: get_filtered_overview_data(st.session_state.selected_week, child)})
                 else:
                     for child in children:
-                        children_data.append({child: get_overview_data(st.session_state.selected_week, child)})
+                        children_data.append({child: get_filtered_overview_data(st.session_state.selected_week, child)})
 
-            data_this_week = get_overview_data(st.session_state.selected_week, ou_to_select)
-            data_week_before_last = get_overview_data(get_previous_week(st.session_state.selected_week), ou_to_select)
+            if ou_to_select:
+                if "borgerteam" not in ou_to_select.lower() and "sygeplejegrupper" not in ou_to_select.lower():
+                    data_this_week = get_filtered_overview_data(st.session_state.selected_week, ou_to_select, keywords_exclude=['Sygeplejegrupper', 'Borgerteam'])
+                    data_week_before_last = get_filtered_overview_data(get_previous_week(st.session_state.selected_week), ou_to_select, keywords_exclude=['Sygeplejegrupper', 'Borgerteam'])
+                else:
+                    data_this_week = get_filtered_overview_data(st.session_state.selected_week, ou_to_select)
+                    data_week_before_last = get_filtered_overview_data(get_previous_week(st.session_state.selected_week), ou_to_select)
+            else:
+                data_this_week = get_overview_data(st.session_state.selected_week, ou_to_select)
+                data_week_before_last = get_overview_data(get_previous_week(st.session_state.selected_week), ou_to_select)
+            # end new way #
 
-            # st.markdown(f'<font size="5"> Uge {selected_week.split("-")[1]}', unsafe_allow_html=True)
             content_top_container = st.container()
             content_bottom_container = st.container()
             with content_top_container:
@@ -166,11 +213,11 @@ with Session(get_engine()) as session:
                                 st.altair_chart(chart, use_container_width=True)
 
         elif content_tabs == 'Medarbejdere':
-            # st.markdown(f'<font size="5"> Uge {selected_week.split("-")[1]}', unsafe_allow_html=True)
             children = get_children(selected_menu_item)
 
             if children:
                 children_of_children = [item for child in children for item in get_children(child)]
+
                 children_data = []
                 if children_of_children:
                     for child in children_of_children:
@@ -179,8 +226,23 @@ with Session(get_engine()) as session:
                     for child in children:
                         children_data.append({child: get_overview_data(st.session_state.selected_week, child)})
 
-            data_this_week = get_employee_data(st.session_state.selected_week, ou_to_select)
-            data_week_before_last = get_employee_data(get_previous_week(st.session_state.selected_week), ou_to_select)
+            # start old way (correct way) #
+            # data_this_week = get_employee_data(st.session_state.selected_week, ou_to_select)
+            # data_week_before_last = get_employee_data(get_previous_week(st.session_state.selected_week), ou_to_select)
+            # end old way #
+
+            # start new way (hacky) #
+            if ou_to_select:
+                if "borgerteam" not in ou_to_select.lower() and "sygeplejegrupper" not in ou_to_select.lower():
+                    data_this_week = get_filtered_employee_data(st.session_state.selected_week, ou_to_select, keywords_exclude=['Sygeplejegrupper', 'Borgerteam'])
+                    data_week_before_last = get_filtered_employee_data(get_previous_week(st.session_state.selected_week), ou_to_select, keywords_exclude=['Sygeplejegrupper', 'Borgerteam'])
+                else:
+                    data_this_week = get_filtered_employee_data(st.session_state.selected_week, ou_to_select)
+                    data_week_before_last = get_filtered_employee_data(get_previous_week(st.session_state.selected_week), ou_to_select)
+            else:
+                data_this_week = get_employee_data(st.session_state.selected_week, ou_to_select)
+                data_week_before_last = get_employee_data(get_previous_week(st.session_state.selected_week), ou_to_select)
+            # end new way #
 
             if data_this_week:
                 nc = st.columns([1, 1, 1])
@@ -216,24 +278,34 @@ with Session(get_engine()) as session:
                             st.metric(label=key, value=value, delta=delta_value, delta_color=delta_color)
 
         elif content_tabs == 'Ydelser':
-            data = get_service_data(st.session_state.selected_week, ou_to_select)
+            # start old way (correct way) #
+            # data = get_service_data(st.session_state.selected_week, ou_to_select)
+            # end old way #
+
+            # start new way (hacky) #
+            if ou_to_select:
+                if "borgerteam" not in ou_to_select.lower() and "sygeplejegrupper" not in ou_to_select.lower():
+                    data = get_filtered_service_data(st.session_state.selected_week, ou_to_select, keywords_exclude=['Sygeplejegrupper', 'Borgerteam'])
+                else:
+                    data = get_filtered_service_data(st.session_state.selected_week, ou_to_select)
+            else:
+                data = get_service_data(st.session_state.selected_week, ou_to_select)
+            # end new way #
 
             if data:
-                # st.markdown(f'<font size="5"> Uge {selected_week.split("-")[1]}', unsafe_allow_html=True)
                 cols = st.columns(len(data))
                 # Create a unique color map for all names
                 unique_names = set()
                 for key, value in data.items():
                     if isinstance(value, list) and all(isinstance(item, dict) for item in value):
-                        # Sort items by visits and take the top 10 in reverse order
-                        top_items = sorted(value, key=lambda x: x['visits'], reverse=True)[:10]
+                        # Sort items by visits and take the top  in reverse order
+                        top_items = sorted(value, key=lambda x: x['visits'], reverse=True)[:8]
                         unique_names.update(item['name'] for item in top_items)
                 unique_names.add('Andet')
                 unique_names = sorted(unique_names)
-
+                
                 color_palette = plt.get_cmap('tab20b').colors
                 color_map = {name: '#{:02x}{:02x}{:02x}'.format(int(color[0]*255), int(color[1]*255), int(color[2]*255)) for name, color in zip(unique_names, color_palette)}
-
                 index = 0
 
                 for key, value in data.items():
@@ -246,11 +318,11 @@ with Session(get_engine()) as session:
                             total_visits = sum(visits)
                             percentages = [(visit / total_visits) * 100 for visit in visits]
 
-                            # Filter out items with less than 4% and limit to a maximum of 9 items
+                            # Filter out items with less than 4% and limit to a maximum of 8 items
                             filtered_data = [(name, visit) for name, visit, percentage in zip(names, visits, percentages) if percentage >= 4]
-                            filtered_data = sorted(filtered_data, key=lambda x: x[1], reverse=True)[:9]
+                            filtered_data = sorted(filtered_data, key=lambda x: x[1], reverse=True)[:8]
                             other_data = [(name, percentage, amount) for name, amount, percentage in zip(names, visits, percentages) if percentage < 4 and amount > 0]
-                            other_data = [(name, percentage, amount) for name, percentage, amount in sorted(other_data, key=lambda x: x[1], reverse=True)[:11]]
+                            other_data = [(name, percentage, amount) for name, percentage, amount in sorted(other_data, key=lambda x: x[1], reverse=True)[:8]]
 
                             filtered_names, filtered_visits = zip(*filtered_data) if filtered_data else ([], [])
 
@@ -258,7 +330,7 @@ with Session(get_engine()) as session:
 
                             if other_visits > 0:
                                 if len(other_data) == 1:
-                                    filtered_data.append((list(other_data.keys())[0], other_visits))
+                                    filtered_data.append((other_data[0][0], other_visits))
                                 else:
                                     filtered_data.append(('Andet', other_visits))
 
@@ -281,28 +353,36 @@ with Session(get_engine()) as session:
                                 index += 1
         elif content_tabs == 'Historik':
             st.markdown(f'<font size="5"> {content_tabs}', unsafe_allow_html=True)
-            # top_container.empty()
             with top_container.empty():
                 top_columns = st.columns([1, 1, 1])
                 with top_columns[0]:
                     st.markdown(f'<font size="6"> {selected_menu_item}', unsafe_allow_html=True)
                 with top_columns[1]:
                     with st.container(border=True):
-                        # st.markdown('<font size="4"> Fra uge:', unsafe_allow_html=True)
                         st.write('Fra')
                         st.session_state.first_week = week_selector(get_week_before_last(), '2023-18', key='start', week_to_select=st.session_state.first_week)
                 with top_columns[2]:
-                    # st.markdown('<font size="4"> Til uge:', unsafe_allow_html=True)
                     with st.container(border=True):
                         st.write('Til')
                         st.session_state.last_week = week_selector(get_last_week(), '2023-18', key='end', week_to_select=st.session_state.last_week)
 
-            # st.divider()
-
             weeks = get_weeks(st.session_state.first_week, st.session_state.last_week)
             data = []
             for week in weeks:
-                week_data = get_overview_data(week, ou_to_select)
+                # start old way (correct way) #
+                # week_data = get_overview_data(week, ou_to_select)
+                # end old way #
+
+                # start new way (hacky) #
+                if ou_to_select:
+                    if "borgerteam" not in ou_to_select.lower() and "sygeplejegrupper" not in ou_to_select.lower():
+                        week_data = get_filtered_overview_data(week, ou_to_select, keywords_exclude=['Sygeplejegrupper', 'Borgerteam'])
+                    else:
+                        week_data = get_filtered_overview_data(week, ou_to_select)
+                else:
+                    week_data = get_overview_data(week, ou_to_select)
+                # end new way #
+                
                 if week_data:
                     week_data['Uge'] = week
                     data.append(week_data)
