@@ -122,11 +122,11 @@ def visits_data(dataframe):
     return pd.concat([citizens_s, duration_s, calls_s], axis=1)
 
 
-def get_children(ou, filtered=False):
+def get_children(ou, keywords=None):
     with Session(get_engine()) as session:
         # start new way (hacky) #
-        if filtered:
-            if ou.lower() in ['borgerteam', 'sygeplejegrupper']:
+        if keywords:
+            if ou.lower() in keywords:
                 children = session.query(OU.nexus_name).filter(OU.nexus_name.contains(ou)).distinct().all()
                 return [child.nexus_name for child in children]
         # end new way#
@@ -139,11 +139,11 @@ def get_children(ou, filtered=False):
                     children.extend([child.nexus_name for child in ou.children])
 
             # start new way (hacky) #
-            if filtered:
+            if keywords:
                 if any('område' in ou.nexus_name.lower() for ou in ous):
-                    children = [child for child in children if not any(keyword in child.lower() for keyword in ['borgerteam', 'sygeplejegrupper'])]
+                    children = [child for child in children if not any(keyword in child.lower() for keyword in keywords)]
                 elif 'kultur og omsorg' in ou.nexus_name.lower():
-                    children.extend(['Borgerteam', 'Sygeplejegrupper'])
+                    children.extend([word.capitalize() for word in keywords])
             # end new way #
 
             return children
@@ -151,7 +151,7 @@ def get_children(ou, filtered=False):
 
 
 # start new way (hacky) #
-def get_filtered_overview_data(week=None, ou=None, keywords_include=None, keywords_exclude=None):
+def get_filtered_overview_data(week=None, ou=None, keywords_exclude=None):
     if week is None:
         week = get_last_week()
 
@@ -183,11 +183,21 @@ def get_filtered_overview_data(week=None, ou=None, keywords_include=None, keywor
                 active_residents = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Resident', Call.caller_role == 'Employee')).filter(Call.caller_ou_id.in_(ou_ids)).distinct(Call.callee_cpr).count()
                 all_residents = session.query(func.sum(WeeklyStat.residents)).filter(WeeklyStat.week == week).filter(WeeklyStat.ou_id.in_(ou_ids)).scalar()
         else:
-            total_calls = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.callee_role == 'Resident', Call.caller_role == 'Employee')).count()
-            answered_calls = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Resident', Call.caller_role == 'Employee')).count()
-            average_duration = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Resident', Call.caller_role == 'Employee')).with_entities(func.avg(Call.duration)).scalar()
-            active_residents = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Resident', Call.caller_role == 'Employee')).distinct(Call.callee_cpr).count()
-            all_residents = session.query(func.sum(WeeklyStat.residents)).filter(WeeklyStat.week == week).scalar()
+            if keywords_exclude:
+                ous_to_exclude = session.query(OU).filter(or_(*[OU.nexus_name.contains(keyword) for keyword in keywords_exclude])).all()
+                ou_ids_to_exclude = [ou.id for ou in ous_to_exclude]
+
+                total_calls = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.callee_role == 'Resident', Call.caller_role == 'Employee', ~Call.caller_ou_id.in_(ou_ids_to_exclude))).count()
+                answered_calls = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Resident', Call.caller_role == 'Employee', ~Call.caller_ou_id.in_(ou_ids_to_exclude))).count()
+                average_duration = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Resident', Call.caller_role == 'Employee', ~Call.caller_ou_id.in_(ou_ids_to_exclude))).with_entities(func.avg(Call.duration)).scalar()
+                active_residents = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Resident', Call.caller_role == 'Employee', ~Call.caller_ou_id.in_(ou_ids_to_exclude))).distinct(Call.callee_cpr).count()
+                all_residents = session.query(func.sum(WeeklyStat.residents)).filter(WeeklyStat.week == week, ~WeeklyStat.ou_id.in_(ou_ids_to_exclude)).scalar()
+            else:
+                total_calls = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.callee_role == 'Resident', Call.caller_role == 'Employee')).count()
+                answered_calls = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Resident', Call.caller_role == 'Employee')).count()
+                average_duration = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Resident', Call.caller_role == 'Employee')).with_entities(func.avg(Call.duration)).scalar()
+                active_residents = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Resident', Call.caller_role == 'Employee')).distinct(Call.callee_cpr).count()
+                all_residents = session.query(func.sum(WeeklyStat.residents)).filter(WeeklyStat.week == week).scalar()
 
         unanswered_calls = total_calls - answered_calls
 
@@ -271,7 +281,7 @@ def get_overview_data(week=None, ou=None):
 
 
 # start new way (hacky) #
-def get_filtered_employee_data(week=None, ou=None, keywords_include=None, keywords_exclude=None):
+def get_filtered_employee_data(week=None, ou=None, keywords_exclude=None):
     if week is None:
         week = get_last_week()
 
@@ -375,7 +385,7 @@ def get_service_data(week=None, ou=None):
 
 
 # start new way (hacky) #
-def get_filtered_service_data(week=None, ou=None, keywords_include=None, keywords_exclude=None):
+def get_filtered_service_data(week=None, ou=None, keywords_exclude=None):
     if week is None:
         week = get_last_week()
 
@@ -401,9 +411,18 @@ def get_filtered_service_data(week=None, ou=None, keywords_include=None, keyword
                 visit = session.query(Service.name, func.sum(Service.visits).label('visits')).join(OU, Service.ou_id == OU.id).filter(OU.id.in_(ou_ids)).filter(Service.week == week).filter(Service.type == "Besøg").group_by(Service.name).order_by(func.sum(Service.visits).desc()).all()
                 call_visit = session.query(Service.name, func.sum(Service.visits).label('visits')).join(OU, Service.ou_id == OU.id).filter(OU.id.in_(ou_ids)).filter(Service.week == week).filter(Service.type == "Telefonopkald").group_by(Service.name).order_by(func.sum(Service.visits).desc()).all()
         else:
-            screen_visit = session.query(Service.name, func.sum(Service.visits).label('visits')).filter(Service.week == week).filter(Service.type == "Skærmbesøg").group_by(Service.name).order_by(func.sum(Service.visits).desc()).all()
-            visit = session.query(Service.name, func.sum(Service.visits).label('visits')).filter(Service.week == week).filter(Service.type == "Besøg").group_by(Service.name).order_by(func.sum(Service.visits).desc()).all()
-            call_visit = session.query(Service.name, func.sum(Service.visits).label('visits')).filter(Service.week == week).filter(Service.type == "Telefonopkald").group_by(Service.name).order_by(func.sum(Service.visits).desc()).all()
+            if keywords_exclude:
+                ous_to_exclude = session.query(OU).filter(or_(*[OU.nexus_name.contains(keyword) for keyword in keywords_exclude])).all()
+                ou_ids_to_exclude = [ou.id for ou in ous_to_exclude]
+
+                screen_visit = session.query(Service.name, func.sum(Service.visits).label('visits')).filter(Service.week == week).filter(Service.type == "Skærmbesøg").filter(~Service.ou_id.in_(ou_ids_to_exclude)).group_by(Service.name).order_by(func.sum(Service.visits).desc()).all()
+                visit = session.query(Service.name, func.sum(Service.visits).label('visits')).filter(Service.week == week).filter(Service.type == "Besøg").filter(~Service.ou_id.in_(ou_ids_to_exclude)).group_by(Service.name).order_by(func.sum(Service.visits).desc()).all()
+                call_visit = session.query(Service.name, func.sum(Service.visits).label('visits')).filter(Service.week == week).filter(Service.type == "Telefonopkald").filter(~Service.ou_id.in_(ou_ids_to_exclude)).group_by(Service.name).order_by(func.sum(Service.visits).desc()).all()
+
+            else:
+                screen_visit = session.query(Service.name, func.sum(Service.visits).label('visits')).filter(Service.week == week).filter(Service.type == "Skærmbesøg").group_by(Service.name).order_by(func.sum(Service.visits).desc()).all()
+                visit = session.query(Service.name, func.sum(Service.visits).label('visits')).filter(Service.week == week).filter(Service.type == "Besøg").group_by(Service.name).order_by(func.sum(Service.visits).desc()).all()
+                call_visit = session.query(Service.name, func.sum(Service.visits).label('visits')).filter(Service.week == week).filter(Service.type == "Telefonopkald").group_by(Service.name).order_by(func.sum(Service.visits).desc()).all()
 
     screen_visit_list = [{"name": service.name, "visits": service.visits} for service in screen_visit]
     visit_list = [{"name": service.name, "visits": service.visits} for service in visit]

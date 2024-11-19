@@ -34,7 +34,7 @@ with Session(get_engine()) as session:
                 return None
 
             # children = [generate_menu_item(child) for child in ou.children if 'intet' not in child.nexus_name.lower()] if ou.children else None
-            children = [generate_menu_item(child) for child in ou.children if all(s not in child.nexus_name.lower() for s in ['intet', 'borgerteam', 'sygeplejegruppe'])] if ou.children else None
+            children = [generate_menu_item(child) for child in ou.children if all(s not in child.nexus_name.lower() for s in ['intet', 'borgerteam', 'sygeplejegruppe', 'plejecenter'])] if ou.children else None
 
             if 'kultur og omsorg' in ou.nexus_name.lower():
                 # Borgerteams
@@ -112,13 +112,13 @@ with Session(get_engine()) as session:
             if 'kultur og omsorg' in selected_menu_item.lower():
                 children = get_children(selected_menu_item)
             else:
-                children = get_children(selected_menu_item, True)
+                children = get_children(selected_menu_item, ['sygeplejegrupper', 'borgerteam', 'plejecenter'])
 
             if children:
                 if 'kultur og omsorg' in selected_menu_item.lower():
-                    children_of_children = [item for child in children for item in get_children(child)]
+                    children_of_children = [item for child in children for item in get_children(child, ['plejecenter'])]
                 else:
-                    children_of_children = [item for child in children for item in get_children(child, True)]
+                    children_of_children = [item for child in children for item in get_children(child, ['sygeplejegrupper', 'borgerteam'])]
 
                 children_data = []
                 if children_of_children:
@@ -130,14 +130,16 @@ with Session(get_engine()) as session:
 
             if ou_to_select:
                 if "borgerteam" not in ou_to_select.lower() and "sygeplejegrupper" not in ou_to_select.lower():
-                    data_this_week = get_filtered_overview_data(st.session_state.selected_week, ou_to_select, keywords_exclude=['Sygeplejegrupper', 'Borgerteam'])
-                    data_week_before_last = get_filtered_overview_data(get_previous_week(st.session_state.selected_week), ou_to_select, keywords_exclude=['Sygeplejegrupper', 'Borgerteam'])
+                    data_this_week = get_filtered_overview_data(st.session_state.selected_week, ou_to_select, keywords_exclude=['Sygeplejegrupper', 'Borgerteam', 'Plejecenter'])
+                    data_week_before_last = get_filtered_overview_data(get_previous_week(st.session_state.selected_week), ou_to_select, keywords_exclude=['Sygeplejegrupper', 'Borgerteam', 'Plejecenter'])
                 else:
-                    data_this_week = get_filtered_overview_data(st.session_state.selected_week, ou_to_select)
-                    data_week_before_last = get_filtered_overview_data(get_previous_week(st.session_state.selected_week), ou_to_select)
+                    data_this_week = get_filtered_overview_data(st.session_state.selected_week, ou_to_select, keywords_exclude=['Plejecenter'])
+                    data_week_before_last = get_filtered_overview_data(get_previous_week(st.session_state.selected_week), ou_to_select, keywords_exclude=['Plejecenter'])
             else:
-                data_this_week = get_overview_data(st.session_state.selected_week, ou_to_select)
-                data_week_before_last = get_overview_data(get_previous_week(st.session_state.selected_week), ou_to_select)
+                # data_this_week = get_overview_data(st.session_state.selected_week, ou_to_select)
+                data_this_week = get_filtered_overview_data(st.session_state.selected_week, ou_to_select, keywords_exclude=['Plejecenter'])
+                # data_week_before_last = get_overview_data(get_previous_week(st.session_state.selected_week), ou_to_select)
+                data_week_before_last = get_filtered_overview_data(get_previous_week(st.session_state.selected_week), ou_to_select, keywords_exclude=['Plejecenter'])
             # end new way #
 
             content_top_container = st.container()
@@ -234,14 +236,16 @@ with Session(get_engine()) as session:
             # start new way (hacky) #
             if ou_to_select:
                 if "borgerteam" not in ou_to_select.lower() and "sygeplejegrupper" not in ou_to_select.lower():
-                    data_this_week = get_filtered_employee_data(st.session_state.selected_week, ou_to_select, keywords_exclude=['Sygeplejegrupper', 'Borgerteam'])
-                    data_week_before_last = get_filtered_employee_data(get_previous_week(st.session_state.selected_week), ou_to_select, keywords_exclude=['Sygeplejegrupper', 'Borgerteam'])
+                    data_this_week = get_filtered_employee_data(st.session_state.selected_week, ou_to_select, keywords_exclude=['Sygeplejegrupper', 'Borgerteam', 'Plejecenter'])
+                    data_week_before_last = get_filtered_employee_data(get_previous_week(st.session_state.selected_week), ou_to_select, keywords_exclude=['Sygeplejegrupper', 'Borgerteam', 'Plejecenter'])
                 else:
-                    data_this_week = get_filtered_employee_data(st.session_state.selected_week, ou_to_select)
-                    data_week_before_last = get_filtered_employee_data(get_previous_week(st.session_state.selected_week), ou_to_select)
+                    data_this_week = get_filtered_employee_data(st.session_state.selected_week, ou_to_select, keywords_exclude=['Plejecenter'])
+                    data_week_before_last = get_filtered_employee_data(get_previous_week(st.session_state.selected_week), ou_to_select, keywords_exclude=['Plejecenter'])
             else:
-                data_this_week = get_employee_data(st.session_state.selected_week, ou_to_select)
-                data_week_before_last = get_employee_data(get_previous_week(st.session_state.selected_week), ou_to_select)
+                # data_this_week = get_employee_data(st.session_state.selected_week, ou_to_select)
+                data_this_week = get_filtered_employee_data(st.session_state.selected_week, ou_to_select, keywords_exclude=['Plejecenter'])
+                # data_week_before_last = get_employee_data(get_previous_week(st.session_state.selected_week), ou_to_select)
+                data_week_before_last = get_filtered_employee_data(get_previous_week(st.session_state.selected_week), ou_to_select, keywords_exclude=['Plejecenter'])
             # end new way #
 
             if data_this_week:
@@ -285,11 +289,12 @@ with Session(get_engine()) as session:
             # start new way (hacky) #
             if ou_to_select:
                 if "borgerteam" not in ou_to_select.lower() and "sygeplejegrupper" not in ou_to_select.lower():
-                    data = get_filtered_service_data(st.session_state.selected_week, ou_to_select, keywords_exclude=['Sygeplejegrupper', 'Borgerteam'])
+                    data = get_filtered_service_data(st.session_state.selected_week, ou_to_select, keywords_exclude=['Sygeplejegrupper', 'Borgerteam', 'Plejecenter'])
                 else:
-                    data = get_filtered_service_data(st.session_state.selected_week, ou_to_select)
+                    data = get_filtered_service_data(st.session_state.selected_week, ou_to_select, keywords_exclude=['Plejecenter'])
             else:
-                data = get_service_data(st.session_state.selected_week, ou_to_select)
+                # data = get_service_data(st.session_state.selected_week, ou_to_select)
+                data = get_filtered_service_data(st.session_state.selected_week, ou_to_select, keywords_exclude=['Plejecenter'])
             # end new way #
 
             if data:
@@ -303,7 +308,7 @@ with Session(get_engine()) as session:
                         unique_names.update(item['name'] for item in top_items)
                 unique_names.add('Andet')
                 unique_names = sorted(unique_names)
-                
+
                 color_palette = plt.get_cmap('tab20b').colors
                 color_map = {name: '#{:02x}{:02x}{:02x}'.format(int(color[0]*255), int(color[1]*255), int(color[2]*255)) for name, color in zip(unique_names, color_palette)}
                 index = 0
@@ -376,11 +381,12 @@ with Session(get_engine()) as session:
                 # start new way (hacky) #
                 if ou_to_select:
                     if "borgerteam" not in ou_to_select.lower() and "sygeplejegrupper" not in ou_to_select.lower():
-                        week_data = get_filtered_overview_data(week, ou_to_select, keywords_exclude=['Sygeplejegrupper', 'Borgerteam'])
+                        week_data = get_filtered_overview_data(week, ou_to_select, keywords_exclude=['Sygeplejegrupper', 'Borgerteam', 'Plejecenter'])
                     else:
-                        week_data = get_filtered_overview_data(week, ou_to_select)
+                        week_data = get_filtered_overview_data(week, ou_to_select, keywords_exclude=['Plejecenter'])
                 else:
-                    week_data = get_overview_data(week, ou_to_select)
+                    # week_data = get_overview_data(week, ou_to_select)
+                    week_data = get_filtered_overview_data(week, ou_to_select, keywords_exclude=['Plejecenter'])
                 # end new way #
                 
                 if week_data:
