@@ -210,3 +210,55 @@ def create_duration_bar_chart(x: dict, y: dict, min_height: float = 5, x_is_ou: 
     )
 
     return chart
+
+
+def create_user_stat_total_graph(df, start_date, end_date):
+    name = "Alle logins"
+
+    df['tidspunkt'] = pd.to_datetime(df['tidspunkt'])
+
+    df['dato'] = df['tidspunkt'].dt.date
+
+    date_range = pd.date_range(start=start_date, end=end_date)
+    timeunit = 'yearmonthdate'
+    tooltips = [alt.Tooltip(f'{name}:Q', title='Antal Logins')]
+    tooltips = tooltips + [alt.Tooltip('dato:T')]
+
+    logins = df.groupby('dato').size().reindex(date_range, fill_value=0).reset_index(name=name)
+    logins.rename(columns={'index': 'dato'}, inplace=True)
+
+    chart = alt.Chart(logins).mark_bar(color='blue').encode(
+        x=alt.X('dato:T', title='Dato', timeUnit=timeunit),
+        y=alt.Y(f'{name}:Q', title=name),
+        tooltip=tooltips
+    ).properties(
+        title='Alle logins'
+    )
+
+    return chart
+
+
+def create_user_stat_unique_graph(df, start_date, end_date):
+    name = "Unikke brugere"
+    df['tidspunkt'] = pd.to_datetime(df['tidspunkt'])
+
+    df['dato'] = df['tidspunkt'].dt.date
+
+    date_range = pd.date_range(start=start_date, end=end_date)
+    timeunit = 'yearmonthdate'
+    tooltips = [alt.Tooltip(f'{name}:Q', title='Antal Logins')]
+    tooltips = tooltips + [alt.Tooltip('dato:T')]
+
+    logins = df.groupby('dato')['email'].nunique().reindex(date_range, fill_value=0).reset_index(name=name)
+
+    logins.rename(columns={'index': 'dato'}, inplace=True)
+
+    chart = alt.Chart(logins).mark_bar(color='green').encode(
+        x=alt.X('dato:T', title='Date', timeUnit=timeunit),
+        y=alt.Y(f'{name}:Q', title=name),
+        tooltip=tooltips
+    ).properties(
+        title='Unikke brugere'
+    )
+
+    return chart
