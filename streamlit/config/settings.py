@@ -21,7 +21,7 @@ KEYCLOAK_URL = os.environ["KEYCLOAK_URL"].strip()
 KEYCLOAK_REALM = os.environ["KEYCLOAK_REALM"].strip()
 KEYCLOAK_CLIENT = os.environ["KEYCLOAK_CLIENT"].strip()
 
-DEPLOYED_IN_TEST = os.getenv("DEPLOYED_IN_TEST", 'False').lower() in ('true', '1', 't')
+DEPLOYED_IN_TEST = os.getenv("DEPLOYED_IN_TEST", 'False').strip().lower() in ('true', '1', 't')
 
 # APPLIKATOR_USERNAME = os.environ['APPLIKATOR_USERNAME']
 # APPLIKATOR_PASSWORD = os.environ['APPLIKATOR_PASSWORD']
