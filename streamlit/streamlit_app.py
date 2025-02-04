@@ -29,6 +29,27 @@ keycloak = login(
     client_id=KEYCLOAK_CLIENT
 )
 
+# # For testing purposes
+# from dataclasses import dataclass
+# @dataclass
+# class MyClass:
+#     authenticated: bool
+#     user_info: dict
+
+#     def __init__(self):
+#         self.authenticated = True
+#         self.user_info = {
+#             'email': 'hej',
+#             'resource_access': {
+#                 'virtuel-hjemmesygepleje': {
+#                     'roles': ['admin']
+#                 }
+#             }
+#         }
+
+
+# keycloak = MyClass()
+# # End testing purposes
 
 if not keycloak.authenticated:
     st.error("Du er ikke logget ind")
@@ -139,8 +160,10 @@ else:
             with usage_columns[1]:
                 filtered_all_logins_df = all_logins_df[(all_logins_df['tidspunkt'] >= start_date) & (all_logins_df['tidspunkt'] <= end_date)]
                 chart_total = create_user_stat_total_graph(filtered_all_logins_df, start_date, end_date)
+                st.metric(label='Logins for hele perioden', value=all_logins_df.shape[0])
                 st.altair_chart(chart_total, use_container_width=True)
                 chart_unique = create_user_stat_unique_graph(filtered_all_logins_df, start_date, end_date)
+                st.metric(label='Unikke brugere for hele perioden', value=all_logins_df['email'].nunique())
                 st.altair_chart(chart_unique, use_container_width=True)
 
         else:

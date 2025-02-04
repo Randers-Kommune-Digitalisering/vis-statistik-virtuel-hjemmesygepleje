@@ -232,7 +232,7 @@ def create_user_stat_total_graph(df, start_date, end_date):
         y=alt.Y(f'{name}:Q', title=name),
         tooltip=tooltips
     ).properties(
-        title='Alle logins'
+        title='Alle logins - fordelt per dag'
     )
 
     return chart
@@ -258,7 +258,7 @@ def create_user_stat_unique_graph(df, start_date, end_date):
         y=alt.Y(f'{name}:Q', title=name),
         tooltip=tooltips
     ).properties(
-        title='Unikke brugere'
+        title='Unikke brugere - fordelt per dag'
     )
 
     return chart
