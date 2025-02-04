@@ -237,6 +237,8 @@ else:
                                 elif type(value) is list:
                                     pass
                                 else:
+                                    if type(old_value) not in [int, float]:
+                                        old_value = 0
                                     delta_value = data_this_week[key] - data_week_before_last[key] 
 
                                 if 'Omlægningsgrad' in key:
