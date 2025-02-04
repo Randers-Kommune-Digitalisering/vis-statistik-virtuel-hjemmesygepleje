@@ -160,7 +160,9 @@ with Session(get_engine()) as session:
                         elif type(value) is list:
                             pass
                         else:
-                            delta_value = data_this_week[key] - data_week_before_last[key] 
+                            if type(old_value) not in [int, float]:
+                                old_value = 0
+                            delta_value = data_this_week[key] - old_value
 
                         if 'Omlægningsgrad' in key:
                             if type(value) is str:
