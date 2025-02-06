@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, String, Double, Integer, DateTime, Time, DDL, UniqueConstraint, event
+from sqlalchemy import Column, ForeignKey, String, Double, Integer, DateTime, Time, DDL, UniqueConstraint, event, func
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import relationship
 # from sqlalchemy.schema import UniqueConstraint
@@ -101,3 +101,13 @@ class Call(Base):
 
     def __repr__(self) -> str:
         return f"Call(id={self.id!r})"
+
+
+class LoginLog(Base):
+    __tablename__ = "login_log"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    time = Column(DateTime, default=func.now())
+    email = Column(String(60), nullable=False)
+
+    def __repr__(self) -> str:
+        return f"Longin(id={self.id!r}, time={self.time!r}, email={self.email!r})"

@@ -29,7 +29,7 @@ def font_sizes():
     </style>""", unsafe_allow_html=True)
 
 
-def week_selector(week_str, min_week_str, key='', week_to_select=None, delta_week_index=None):
+def week_selector(week_str, min_week_str, key='', week_to_select=None, delta_week_index=None, last_week_current_week=False):
     min_year, min_week = [int(x) for x in min_week_str.split('-')]
     default_year, default_week = [int(x) for x in week_str.split('-')]
 
@@ -50,7 +50,7 @@ def week_selector(week_str, min_week_str, key='', week_to_select=None, delta_wee
         start_week = 1
 
     if selected_year == default_year:
-        end_week = default_week + 1
+        end_week = default_week + (2 if last_week_current_week else 1)
     else:
         end_week = last_week_for_year(selected_year) + 1
 
