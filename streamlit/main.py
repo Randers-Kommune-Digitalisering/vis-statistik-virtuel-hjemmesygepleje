@@ -32,7 +32,7 @@ if __name__ == '__main__':
 
     sched.add_job(start_up_job, 'date', run_date=datetime.now())
     sched.add_job(hourly_job, 'cron', minute='30')
-    sched.add_job(weekly_job, 'cron', day_of_week='mon', hour='*')
+    sched.add_job(weekly_job, 'cron', day_of_week='mon-wed', hour='*')
     sched.start()
 
     sys.argv = ["streamlit", "run", "streamlit_app.py", "--client.toolbarMode=minimal", "--server.port=8080"]
