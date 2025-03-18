@@ -6,10 +6,10 @@ from streamlit_keycloak import login
 from dataclasses import asdict
 from datetime import timedelta
 from sqlalchemy.orm import Session
-from sqlalchemy import and_
+from sqlalchemy import and_, desc
 import matplotlib.pyplot as plt
 
-from models import OU, LoginLog
+from models import OU, LoginLog, WeeklyStat
 from database import get_engine
 from data import get_overview_data, get_children, get_filtered_overview_data, get_filtered_employee_data, get_filtered_service_data  # get_employee_data, get_service_data
 from charts import create_service_pie_chart, create_conversion_rate_bar_chart, create_calls_bar_chart, create_use_level_bar_chart, create_duration_bar_chart, create_user_stat_total_graph, create_user_stat_unique_graph
@@ -54,16 +54,17 @@ keycloak = login(
 if not keycloak.authenticated:
     st.error("Du er ikke logget ind")
 else:
-    if "selected_week" not in st.session_state:
-        st.session_state.selected_week = get_last_week()
-
-    if "first_week" not in st.session_state:
-        st.session_state.first_week = get_week_before_last()
-
-    if "last_week" not in st.session_state:
-        st.session_state.last_week = get_last_week()
-
     with Session(get_engine()) as session:
+
+        if "selected_week" not in st.session_state:
+            st.session_state.selected_week = session.query(WeeklyStat).order_by(desc(WeeklyStat.id)).first().week
+
+        if "first_week" not in st.session_state:
+            st.session_state.first_week = get_previous_week(st.session_state.selected_week)
+
+        if "last_week" not in st.session_state:
+            st.session_state.last_week = get_last_week()
+
         def generate_menu_items():
             top = session.query(OU).filter(and_(OU.children != None, OU.parent == None)).first()
             added_items = set()
