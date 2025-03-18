@@ -44,8 +44,12 @@ def read_bi_data():
                             df.columns.values[0] = 'ou_id'
                             df.columns.values[1] = 'type'
 
+                            # Has changed name from 'Distrikt Lindevænget' to 'Distrikt Tørvebryggen'
                             df['ou_id'] = df['ou_id'].apply(lambda value: 'Distrikt Tørvebryggen' if value == 'Distrikt Lindevænget' else value)
-                            df['ou_id'] = df['ou_id'].apply(lambda value: next(d for d in districts if d.nexus_name == value).id)
+
+                            # Set district id based on Nexus name and filter out disticts not in database
+                            df['ou_id'] = df['ou_id'].apply(lambda value: next((d.id for d in districts if d.nexus_name == value), None))
+                            df.dropna(subset=['ou_id'], inplace=True)
 
                             df_melted = df.melt(id_vars=['ou_id', 'type'], var_name='name', value_name='visits')
                             df_melted = df_melted.dropna(subset=['visits'])
@@ -73,8 +77,12 @@ def read_bi_data():
                             else:
                                 df['type'] = 'Besøg'
 
+                            # Has changed name from 'Distrikt Lindevænget' to 'Distrikt Tørvebryggen'
                             df['ou_id'] = df['ou_id'].apply(lambda value: 'Distrikt Tørvebryggen' if value == 'Distrikt Lindevænget' else value)
-                            df['ou_id'] = df['ou_id'].apply(lambda value: next(d for d in districts if d.nexus_name == value).id)
+
+                            # Set district id based on Nexus name and filter out disticts not in database
+                            df['ou_id'] = df['ou_id'].apply(lambda value: next((d.id for d in districts if d.nexus_name == value), None))
+                            df.dropna(subset=['ou_id'], inplace=True)
 
                             service_dfs.append(df)
 
@@ -118,8 +126,13 @@ def read_bi_data():
                         df.rename(columns={df.columns[0]: 'ou_id'}, inplace=True)
                         df.rename(columns={df.columns[1]: 'residents'}, inplace=True)
 
+                        # Has changed name from 'Distrikt Lindevænget' to 'Distrikt Tørvebryggen'
                         df['ou_id'] = df['ou_id'].apply(lambda value: 'Distrikt Tørvebryggen' if value == 'Distrikt Lindevænget' else value)
-                        df['ou_id'] = df['ou_id'].apply(lambda value: next(d for d in districts if d.nexus_name == value).id)
+
+                        # Set district id based on Nexus name and filter out disticts not in database
+                        df['ou_id'] = df['ou_id'].apply(lambda value: next((d.id for d in districts if d.nexus_name == value), None))
+                        df.dropna(subset=['ou_id'], inplace=True)
+
                         df['week'] = week
 
                         week_stats_df.append(df)
@@ -128,7 +141,7 @@ def read_bi_data():
                 # week_stats_df['week'] = week
                 if week_stats_df:
                     week_stats_df = pd.concat(week_stats_df)
-                
+
                     week_stats = []
 
                     for _, row in week_stats_df.iterrows():
