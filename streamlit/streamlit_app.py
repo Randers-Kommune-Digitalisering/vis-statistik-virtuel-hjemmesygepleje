@@ -64,42 +64,75 @@ else:
 
         if "last_week" not in st.session_state:
             st.session_state.last_week = get_last_week()
+        # OLD start
+        # def generate_menu_items():
+        #     top = session.query(OU).filter(and_(OU.children != None, OU.parent == None)).first()
+        #     added_items = set()
+
+        #     def generate_menu_item(ou):
+        #         if ou.nexus_name in added_items:
+        #             return None
+
+        #         # children = [generate_menu_item(child) for child in ou.children if 'intet' not in child.nexus_name.lower()] if ou.children else None
+        #         children = [generate_menu_item(child) for child in ou.children if all(s not in child.nexus_name.lower() for s in ['intet', 'borgerteam', 'sygeplejegruppe', 'plejecenter'])] if ou.children else None
+
+        #         if 'kultur og omsorg' in ou.nexus_name.lower():
+        #             # Borgerteams
+        #             borgerteams = session.query(OU.nexus_name).filter(OU.nexus_name.like('%Borgerteam%')).all()
+        #             unique_borgerteams = list(set(borgerteam[0] for borgerteam in borgerteams))
+        #             borgerteam_item = sac.TreeItem('Borgerteam', children=[sac.TreeItem(borgerteam) for borgerteam in unique_borgerteams])
+        #             children.append(borgerteam_item)
+
+        #             # Sygeplejegrupper
+        #             sygeplejegrupper = session.query(OU.nexus_name).filter(OU.nexus_name.like('%Sygeplejegruppe%')).all()
+        #             unique_sygeplejegrupper = list(set(sygeplejegruppe[0] for sygeplejegruppe in sygeplejegrupper))
+        #             sygeplejegrupper_item = sac.TreeItem('Sygeplejegrupper', children=[sac.TreeItem(sygeplejegruppe) for sygeplejegruppe in unique_sygeplejegrupper])
+        #             children.append(sygeplejegrupper_item)
+
+        #         if children:
+        #             added_items.add(ou.nexus_name)
+        #             return sac.TreeItem(ou.nexus_name, children=[child for child in children if child is not None])
+
+        #         added_items.add(ou.nexus_name)
+        #         return sac.TreeItem(ou.nexus_name)
+
+        #     menu_items = [generate_menu_item(top)]
+
+        #     return menu_items
+        # OLD end
 
         def generate_menu_items():
             top = session.query(OU).filter(and_(OU.children != None, OU.parent == None)).first()
-            added_items = set()
+            areas = session.query(OU).filter(OU.nexus_name.like('%Område%')).all()
 
-            def generate_menu_item(ou):
-                if ou.nexus_name in added_items:
-                    return None
+            # Hjemmepleje
+            hjemmepleje_area_items = [sac.TreeItem('Hjemmepleje ' + area.nexus_name, children=[sac.TreeItem(c.nexus_name) for c in area.children if "Distrikt" in c.nexus_name]) for area in areas]
+            hjemmepleje_item = sac.TreeItem('Hjemmepleje', children=[c for c in hjemmepleje_area_items if c.children])
 
-                # children = [generate_menu_item(child) for child in ou.children if 'intet' not in child.nexus_name.lower()] if ou.children else None
-                children = [generate_menu_item(child) for child in ou.children if all(s not in child.nexus_name.lower() for s in ['intet', 'borgerteam', 'sygeplejegruppe', 'plejecenter'])] if ou.children else None
+            # Plejecentre
+            plejecentre_area_items = [sac.TreeItem('Plejecentre ' + area.nexus_name, children=[sac.TreeItem(c.nexus_name) for c in area.children if "Plejecenter" in c.nexus_name]) for area in areas]
+            plejecentre_item = sac.TreeItem('Plejecentre', children=[c for c in plejecentre_area_items if c.children])
 
-                if 'kultur og omsorg' in ou.nexus_name.lower():
-                    # Borgerteams
-                    borgerteams = session.query(OU.nexus_name).filter(OU.nexus_name.like('%Borgerteam%')).all()
-                    unique_borgerteams = list(set(borgerteam[0] for borgerteam in borgerteams))
-                    borgerteam_item = sac.TreeItem('Borgerteam', children=[sac.TreeItem(borgerteam) for borgerteam in unique_borgerteams])
-                    children.append(borgerteam_item)
+            # Sygeplejegrupper
+            sygeplejegrupper = session.query(OU.nexus_name).filter(OU.nexus_name.like('%Sygeplejegruppe%')).all()
+            unique_sygeplejegrupper = list(set(sygeplejegruppe[0] for sygeplejegruppe in sygeplejegrupper))
+            sygeplejegrupper_item = sac.TreeItem('Sygeplejegrupper', children=[sac.TreeItem(sygeplejegruppe) for sygeplejegruppe in unique_sygeplejegrupper])
 
-                    # Sygeplejegrupper
-                    sygeplejegrupper = session.query(OU.nexus_name).filter(OU.nexus_name.like('%Sygeplejegruppe%')).all()
-                    unique_sygeplejegrupper = list(set(sygeplejegruppe[0] for sygeplejegruppe in sygeplejegrupper))
-                    sygeplejegrupper_item = sac.TreeItem('Sygeplejegrupper', children=[sac.TreeItem(sygeplejegruppe) for sygeplejegruppe in unique_sygeplejegrupper])
-                    children.append(sygeplejegrupper_item)
+            # Borgerteams
+            borgerteams = session.query(OU.nexus_name).filter(OU.nexus_name.like('%Borgerteam%')).all()
+            unique_borgerteams = list(set(borgerteam[0] for borgerteam in borgerteams))
+            borgerteam_item = sac.TreeItem('Borgerteam', children=[sac.TreeItem(borgerteam) for borgerteam in unique_borgerteams])
 
-                if children:
-                    added_items.add(ou.nexus_name)
-                    return sac.TreeItem(ou.nexus_name, children=[child for child in children if child is not None])
+            # Natcenter
+            natcenter = session.query(OU.nexus_name).filter(OU.nexus_name.like('%Natcenter%')).first()[0]
+            natcenter_item = sac.TreeItem(natcenter)
 
-                added_items.add(ou.nexus_name)
-                return sac.TreeItem(ou.nexus_name)
+            top_item = sac.TreeItem(top.children[0].nexus_name, children=[hjemmepleje_item, plejecentre_item, sygeplejegrupper_item, borgerteam_item, natcenter_item])
 
-            menu_items = [generate_menu_item(top)]
+            # top_top_item = sac.TreeItem(top.nexus_name, children=[top_item])
 
-            return menu_items
-
+            return [top_item]
+        
         st.markdown(get_logo(), unsafe_allow_html=True)
         top_container = st.empty()
 
@@ -120,7 +153,7 @@ else:
                     show_usage_stats = sac.switch(label='Brugsstatistik', align='left', size='md', on_color='dark')
 
             if not show_usage_stats:
-                selected_menu_item = sac.tree(generate_menu_items(), color='dark', align='start', icon=None, show_line=False, checkbox=False, checkbox_strict=True, index=1, open_index=[0, 1])  # indent=10, color='black', index=2, open_index=[0, 1])
+                selected_menu_item = sac.tree(generate_menu_items(), color='dark', align='start', icon=None, show_line=False, checkbox=False, checkbox_strict=True, index=0, open_index=0) #[0, 1])  # indent=10, color='black', index=2, open_index=[0, 1])
         if not is_admin and DEPLOYED_IN_TEST:
             st.warning("Du er i testmiljøet - her er linket til drift: https://velfaerdsteknologi.data.randers.dk/")
         elif show_usage_stats:
@@ -190,6 +223,12 @@ else:
             content_tabs = sac.tabs([sac.TabsItem('Overblik'), sac.TabsItem('Medarbejdere'), sac.TabsItem('Ydelser'), sac.TabsItem('Historik')], color='dark', size='md', position='top', align='start', use_container_width=True)
 
             with st.spinner('Henter data...'):
+                keywords_to_exclude = ['sygeplejegrupper', 'borgerteam', 'natcenter']
+                if 'hjemmepleje' in selected_menu_item.lower():
+                    keywords_to_exclude.append('plejecenter')
+                elif 'plejecentre' in selected_menu_item.lower():
+                    keywords_to_exclude.append('distrikt')
+
                 if content_tabs == 'Overblik':  
                     # start old way (correct way) #
                     # children = get_children(selected_menu_item)
@@ -210,16 +249,28 @@ else:
                     # end old way #
 
                     # start new way (hacky) #
+
                     if 'kultur og omsorg' in selected_menu_item.lower():
                         children = get_children(selected_menu_item)
                     else:
-                        children = get_children(selected_menu_item, ['sygeplejegrupper', 'borgerteam', 'plejecenter'])
+                        if any(kw in selected_menu_item.lower() for kw in ['hjemmepleje', 'plejecentre']):
+                            if 'område' in selected_menu_item.lower():
+                                children = get_children(' '.join(selected_menu_item.split(' ')[1:]), keywords_to_exclude)
+                            else:
+                                children = get_children('Sundhed kultur og Omsorg')
+                        # children = get_children(selected_menu_item, ['sygeplejegrupper', 'borgerteam', 'plejecenter'])
+                        else:
+                            children = get_children(selected_menu_item, ['sygeplejegrupper', 'borgerteam', 'plejecenter'])
+                            # children = get_children(selected_menu_item)
 
                     if children:
                         if 'kultur og omsorg' in selected_menu_item.lower():
-                            children_of_children = [item for child in children for item in get_children(child, ['plejecenter'])]
+                            children_of_children = [item for child in children for item in get_children(child)]
                         else:
-                            children_of_children = [item for child in children for item in get_children(child, ['sygeplejegrupper', 'borgerteam'])]
+                            if any(kw in selected_menu_item.lower() for kw in ['hjemmepleje', 'plejecentre']):
+                                children_of_children = [item for child in children for item in get_children(child, keywords_to_exclude)]
+                            else:
+                                children_of_children = [item for child in children for item in get_children(child, ['sygeplejegrupper', 'borgerteam'])]
 
                         children_data = []
                         if children_of_children:
@@ -229,18 +280,12 @@ else:
                             for child in children:
                                 children_data.append({child: get_filtered_overview_data(st.session_state.selected_week, child)})
 
-                    if ou_to_select:
-                        if "borgerteam" not in ou_to_select.lower() and "sygeplejegrupper" not in ou_to_select.lower():
-                            data_this_week = get_filtered_overview_data(st.session_state.selected_week, ou_to_select, keywords_exclude=['Sygeplejegrupper', 'Borgerteam', 'Plejecenter'])
-                            data_week_before_last = get_filtered_overview_data(get_previous_week(st.session_state.selected_week), ou_to_select, keywords_exclude=['Sygeplejegrupper', 'Borgerteam', 'Plejecenter'])
-                        else:
-                            data_this_week = get_filtered_overview_data(st.session_state.selected_week, ou_to_select, keywords_exclude=['Plejecenter'])
-                            data_week_before_last = get_filtered_overview_data(get_previous_week(st.session_state.selected_week), ou_to_select, keywords_exclude=['Plejecenter'])
+                    if any(kw in selected_menu_item.lower() for kw in ['hjemmepleje', 'plejecentre']):
+                        data_this_week = get_filtered_overview_data(st.session_state.selected_week, ' '.join(ou_to_select.split(' ')[1:]), keywords_exclude=keywords_to_exclude)
+                        data_week_before_last = get_filtered_overview_data(get_previous_week(st.session_state.selected_week), ' '.join(ou_to_select.split(' ')[1:]), keywords_exclude=keywords_to_exclude)
                     else:
-                        # data_this_week = get_overview_data(st.session_state.selected_week, ou_to_select)
-                        data_this_week = get_filtered_overview_data(st.session_state.selected_week, ou_to_select, keywords_exclude=['Plejecenter'])
-                        # data_week_before_last = get_overview_data(get_previous_week(st.session_state.selected_week), ou_to_select)
-                        data_week_before_last = get_filtered_overview_data(get_previous_week(st.session_state.selected_week), ou_to_select, keywords_exclude=['Plejecenter'])
+                        data_this_week = get_filtered_overview_data(st.session_state.selected_week, ou_to_select)
+                        data_week_before_last = get_filtered_overview_data(get_previous_week(st.session_state.selected_week), ou_to_select)
                     # end new way #
 
                     content_top_container = st.container()
@@ -337,18 +382,12 @@ else:
                     # end old way #
 
                     # start new way (hacky) #
-                    if ou_to_select:
-                        if "borgerteam" not in ou_to_select.lower() and "sygeplejegrupper" not in ou_to_select.lower():
-                            data_this_week = get_filtered_employee_data(st.session_state.selected_week, ou_to_select, keywords_exclude=['Sygeplejegrupper', 'Borgerteam', 'Plejecenter'])
-                            data_week_before_last = get_filtered_employee_data(get_previous_week(st.session_state.selected_week), ou_to_select, keywords_exclude=['Sygeplejegrupper', 'Borgerteam', 'Plejecenter'])
-                        else:
-                            data_this_week = get_filtered_employee_data(st.session_state.selected_week, ou_to_select, keywords_exclude=['Plejecenter'])
-                            data_week_before_last = get_filtered_employee_data(get_previous_week(st.session_state.selected_week), ou_to_select, keywords_exclude=['Plejecenter'])
+                    if any(kw in selected_menu_item.lower() for kw in ['hjemmepleje', 'plejecentre']):
+                        data_this_week = get_filtered_employee_data(st.session_state.selected_week, ' '.join(ou_to_select.split(' ')[1:]), keywords_exclude=keywords_to_exclude)
+                        data_week_before_last = get_filtered_employee_data(get_previous_week(st.session_state.selected_week), ' '.join(ou_to_select.split(' ')[1:]), keywords_exclude=keywords_to_exclude)
                     else:
-                        # data_this_week = get_employee_data(st.session_state.selected_week, ou_to_select)
-                        data_this_week = get_filtered_employee_data(st.session_state.selected_week, ou_to_select, keywords_exclude=['Plejecenter'])
-                        # data_week_before_last = get_employee_data(get_previous_week(st.session_state.selected_week), ou_to_select)
-                        data_week_before_last = get_filtered_employee_data(get_previous_week(st.session_state.selected_week), ou_to_select, keywords_exclude=['Plejecenter'])
+                        data_this_week = get_filtered_employee_data(st.session_state.selected_week, ou_to_select)
+                        data_week_before_last = get_filtered_employee_data(get_previous_week(st.session_state.selected_week), ou_to_select)
                     # end new way #
 
                     if data_this_week:
@@ -390,14 +429,10 @@ else:
                     # end old way #
 
                     # start new way (hacky) #
-                    if ou_to_select:
-                        if "borgerteam" not in ou_to_select.lower() and "sygeplejegrupper" not in ou_to_select.lower():
-                            data = get_filtered_service_data(st.session_state.selected_week, ou_to_select, keywords_exclude=['Sygeplejegrupper', 'Borgerteam', 'Plejecenter'])
-                        else:
-                            data = get_filtered_service_data(st.session_state.selected_week, ou_to_select, keywords_exclude=['Plejecenter'])
+                    if any(kw in selected_menu_item.lower() for kw in ['hjemmepleje', 'plejecentre']):
+                        data = get_filtered_service_data(st.session_state.selected_week, ' '.join(ou_to_select.split(' ')[1:]), keywords_exclude=keywords_to_exclude)
                     else:
-                        # data = get_service_data(st.session_state.selected_week, ou_to_select)
-                        data = get_filtered_service_data(st.session_state.selected_week, ou_to_select, keywords_exclude=['Plejecenter'])
+                        data = get_filtered_service_data(st.session_state.selected_week, ou_to_select)
                     # end new way #
 
                     if data:
@@ -482,14 +517,10 @@ else:
                         # end old way #
 
                         # start new way (hacky) #
-                        if ou_to_select:
-                            if "borgerteam" not in ou_to_select.lower() and "sygeplejegrupper" not in ou_to_select.lower():
-                                week_data = get_filtered_overview_data(week, ou_to_select, keywords_exclude=['Sygeplejegrupper', 'Borgerteam', 'Plejecenter'])
-                            else:
-                                week_data = get_filtered_overview_data(week, ou_to_select, keywords_exclude=['Plejecenter'])
+                        if any(kw in selected_menu_item.lower() for kw in ['hjemmepleje', 'plejecentre']):
+                            week_data = get_filtered_overview_data(week, ' '.join(ou_to_select.split(' ')[1:]), keywords_exclude=keywords_to_exclude)
                         else:
-                            # week_data = get_overview_data(week, ou_to_select)
-                            week_data = get_filtered_overview_data(week, ou_to_select, keywords_exclude=['Plejecenter'])
+                            week_data = get_filtered_overview_data(week, ou_to_select)
                         # end new way #
                         
                         if week_data:
