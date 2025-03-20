@@ -18,6 +18,7 @@
       { "vitacomm_name": "Paderup/Assentoft", "applikator_id": 7, "nexus_name": "Distrikt Paderup-Assentoft", "parent": "Område Syd"},
       { "vitacomm_name": "Natcenter", "applikator_id": 23, "nexus_name": "Natcenter 8915 8833", "parent": "Område Vest"},
       { "vitacomm_name": "Plejecenter Bakkegaarden", "applikator_id": 26, "nexus_name": "Plejecenter Bakkegården", "parent": "Område Nord"},
+      { "vitacomm_name": "Plejecenter Dronningborg", "applikator_id": null, "nexus_name": "Plejecenter Dronningborg", "parent": "Område Nord"},
       { "vitacomm_name": "Sygepleje nord", "applikator_id": 20, "nexus_name": "Sygeplejegrupper Nord", "parent": "Område Nord"},
       { "vitacomm_name": "Sygepleje syd", "applikator_id": 11, "nexus_name": "Sygeplejegrupper Syd", "parent": "Område Syd" },
       { "vitacomm_name": "Sygepleje vest", "applikator_id": 15, "nexus_name": "Sygeplejegrupper Vest", "parent": "Område Vest"},
