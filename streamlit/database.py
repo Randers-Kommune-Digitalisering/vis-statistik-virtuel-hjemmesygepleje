@@ -433,8 +433,9 @@ def update_call_db(days, start=None, end=None):
             #     df[col] = df[col].map({'Employee': True, 'Resident': False})
             #     df.rename({col: col.replace('role', 'employee')}, axis=1, inplace=True)
             elif 'ou' in col:
-                df[col] = df[col].apply(lambda value: next(d for d in districts if d.vitacomm_name == value.strip()).id)
-                # df.rename({col: col.replace('ou', 'district_id')}, axis=1, inplace=True)
+                # Set ou_id based on vitacomm name and drop rows with unknown ou
+                df[col] = df[col].apply(lambda value: next((d.id for d in districts if d.vitacomm_name == value.strip()), None))
+                df.dropna(subset=[col], inplace=True)
                 df.rename({col: col.replace('ou', 'ou_id')}, axis=1, inplace=True)
             elif 'id' in col:
                 df.rename({col: 'id'}, axis=1, inplace=True)

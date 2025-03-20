@@ -164,8 +164,8 @@ def get_filtered_overview_data(week=None, ou=None, keywords_exclude=None):
             ous_children = [child for ou in ous for child in ou.children]
 
             if keywords_exclude:
-                ous = [ou for ou in ous if not any([keyword in ou.nexus_name for keyword in keywords_exclude])]
-                ous_children = [ou for ou in ous_children if not any([keyword in ou.nexus_name for keyword in keywords_exclude])]
+                ous = [ou for ou in ous if not any([keyword.lower() in ou.nexus_name.lower() for keyword in keywords_exclude])]
+                ous_children = [ou for ou in ous_children if not any([keyword.lower() in ou.nexus_name.lower() for keyword in keywords_exclude])]
 
             ou_ids = [ou.id for ou in ous]
 
@@ -184,7 +184,7 @@ def get_filtered_overview_data(week=None, ou=None, keywords_exclude=None):
                 all_residents = session.query(func.sum(WeeklyStat.residents)).filter(WeeklyStat.week == week).filter(WeeklyStat.ou_id.in_(ou_ids)).scalar()
         else:
             if keywords_exclude:
-                ous_to_exclude = session.query(OU).filter(or_(*[OU.nexus_name.contains(keyword) for keyword in keywords_exclude])).all()
+                ous_to_exclude = session.query(OU).filter(or_(*[func.lower(OU.nexus_name).contains(keyword.lower()) for keyword in keywords_exclude])).all()
                 ou_ids_to_exclude = [ou.id for ou in ous_to_exclude]
 
                 total_calls = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.callee_role == 'Resident', Call.caller_role == 'Employee', ~Call.caller_ou_id.in_(ou_ids_to_exclude))).count()
@@ -294,8 +294,8 @@ def get_filtered_employee_data(week=None, ou=None, keywords_exclude=None):
             ous_children = [child for ou in ous for child in ou.children]
 
             if keywords_exclude:
-                ous = [ou for ou in ous if not any([keyword in ou.nexus_name for keyword in keywords_exclude])]
-                ous_children = [ou for ou in ous_children if not any([keyword in ou.nexus_name for keyword in keywords_exclude])]
+                ous = [ou for ou in ous if not any([keyword.lower() in ou.nexus_name.lower() for keyword in keywords_exclude])]
+                ous_children = [ou for ou in ous_children if not any([keyword.lower() in ou.nexus_name.lower() for keyword in keywords_exclude])]
 
             ou_ids = [ou.id for ou in ous]
 
@@ -309,9 +309,17 @@ def get_filtered_employee_data(week=None, ou=None, keywords_exclude=None):
                 answered_calls = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Employee', Call.caller_role == 'Employee')).filter(or_(Call.caller_ou_id.in_(ou_ids), Call.callee_ou_id.in_(ou_ids))).count()
                 average_duration = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Employee', Call.caller_role == 'Employee')).filter(or_(Call.caller_ou_id.in_(ou_ids), Call.callee_ou_id.in_(ou_ids))).with_entities(func.avg(Call.duration)).scalar()
         else:
-            total_calls = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.callee_role == 'Employee', Call.caller_role == 'Employee')).count()
-            answered_calls = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Employee', Call.caller_role == 'Employee')).count()
-            average_duration = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Employee', Call.caller_role == 'Employee')).with_entities(func.avg(Call.duration)).scalar()
+            if keywords_exclude:
+                ous_to_exclude = session.query(OU).filter(or_(*[func.lower(OU.nexus_name).contains(keyword.lower()) for keyword in keywords_exclude])).all()
+                ou_ids_to_exclude = [ou.id for ou in ous_to_exclude]
+
+                total_calls = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.callee_role == 'Employee', Call.caller_role == 'Employee', ~Call.caller_ou_id.in_(ou_ids_to_exclude), ~Call.callee_ou_id.in_(ou_ids_to_exclude))).count()
+                answered_calls = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Employee', Call.caller_role == 'Employee', ~Call.caller_ou_id.in_(ou_ids_to_exclude), ~Call.callee_ou_id.in_(ou_ids_to_exclude))).count()
+                average_duration = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Employee', Call.caller_role == 'Employee', ~Call.caller_ou_id.in_(ou_ids_to_exclude), ~Call.callee_ou_id.in_(ou_ids_to_exclude))).with_entities(func.avg(Call.duration)).scalar()
+            else:
+                total_calls = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.callee_role == 'Employee', Call.caller_role == 'Employee')).count()
+                answered_calls = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Employee', Call.caller_role == 'Employee')).count()
+                average_duration = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Employee', Call.caller_role == 'Employee')).with_entities(func.avg(Call.duration)).scalar()
 
         unanswered_calls = total_calls - answered_calls
 
@@ -397,8 +405,8 @@ def get_filtered_service_data(week=None, ou=None, keywords_exclude=None):
             ous_children = [child for ou in ous for child in ou.children]
 
             if keywords_exclude:
-                ous = [ou for ou in ous if not any([keyword in ou.nexus_name for keyword in keywords_exclude])]
-                ous_children = [ou for ou in ous_children if not any([keyword in ou.nexus_name for keyword in keywords_exclude])]
+                ous = [ou for ou in ous if not any([keyword.lower() in ou.nexus_name.lower() for keyword in keywords_exclude])]
+                ous_children = [ou for ou in ous_children if not any([keyword.lower() in ou.nexus_name.lower() for keyword in keywords_exclude])]
 
             ou_ids = [ou.id for ou in ous]
             ou_children_ids = [child.id for child in ous_children]
@@ -412,7 +420,7 @@ def get_filtered_service_data(week=None, ou=None, keywords_exclude=None):
                 call_visit = session.query(Service.name, func.sum(Service.visits).label('visits')).join(OU, Service.ou_id == OU.id).filter(OU.id.in_(ou_ids)).filter(Service.week == week).filter(Service.type == "Telefonopkald").group_by(Service.name).order_by(func.sum(Service.visits).desc()).all()
         else:
             if keywords_exclude:
-                ous_to_exclude = session.query(OU).filter(or_(*[OU.nexus_name.contains(keyword) for keyword in keywords_exclude])).all()
+                ous_to_exclude = session.query(OU).filter(or_(*[func.lower(OU.nexus_name).contains(keyword.lower()) for keyword in keywords_exclude])).all()
                 ou_ids_to_exclude = [ou.id for ou in ous_to_exclude]
 
                 screen_visit = session.query(Service.name, func.sum(Service.visits).label('visits')).filter(Service.week == week).filter(Service.type == "Skærmbesøg").filter(~Service.ou_id.in_(ou_ids_to_exclude)).group_by(Service.name).order_by(func.sum(Service.visits).desc()).all()

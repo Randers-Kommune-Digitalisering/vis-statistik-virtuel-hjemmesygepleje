@@ -63,7 +63,10 @@ def week_selector(week_str, min_week_str, key='', week_to_select=None, delta_wee
             week = week_numbers[index]-delta_week_index if week_numbers[index]-delta_week_index > 0 else 0
             index = week_numbers.index(week)
         if week_to_select:
-            index = week_numbers.index(int(week_to_select.split('-')[1]))
+            try:
+                index = week_numbers.index(int(week_to_select.split('-')[1]))
+            except ValueError:
+                index = 0            
 
         selected_week = st.selectbox('Uge', week_numbers, index=index, key=key + 'week')
 
