@@ -16,3 +16,4 @@ streamlit-antd-components
 streamlit-keycloak-zpl
 tabulate
 tornado==6.4
+xlsxwriter
