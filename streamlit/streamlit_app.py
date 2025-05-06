@@ -6,10 +6,10 @@ from streamlit_keycloak import login
 from dataclasses import asdict
 from datetime import timedelta
 from sqlalchemy.orm import Session
-from sqlalchemy import and_, desc
+from sqlalchemy import select, func, desc, and_
 import matplotlib.pyplot as plt
 
-from models import OU, LoginLog, WeeklyStat
+from models import OU, LoginLog, WeeklyStat, Service
 from database import get_engine
 from data import get_overview_data, get_children, get_filtered_overview_data, get_filtered_employee_data, get_filtered_service_data  # get_employee_data, get_service_data
 from charts import create_service_pie_chart, create_conversion_rate_bar_chart, create_calls_bar_chart, create_use_level_bar_chart, create_duration_bar_chart, create_user_stat_total_graph, create_user_stat_unique_graph
@@ -17,6 +17,8 @@ from utils.pages import get_logo
 from utils.time import get_last_week, get_week_before_last, get_previous_week, get_weeks, get_week_start_and_end
 from utils.pages import week_selector
 from config.settings import KEYCLOAK_URL, KEYCLOAK_REALM, KEYCLOAK_CLIENT, DEPLOYED_IN_TEST
+import xlsxwriter
+from io import BytesIO
 
 is_admin = False
 show_usage_stats = False
@@ -132,7 +134,7 @@ else:
             # top_top_item = sac.TreeItem(top.nexus_name, children=[top_item])
 
             return [top_item]
-        
+
         st.markdown(get_logo(), unsafe_allow_html=True)
         top_container = st.empty()
 
@@ -153,7 +155,9 @@ else:
                     show_usage_stats = sac.switch(label='Brugsstatistik', align='left', size='md', on_color='dark')
 
             if not show_usage_stats:
-                selected_menu_item = sac.tree(generate_menu_items(), color='dark', align='start', icon=None, show_line=False, checkbox=False, checkbox_strict=True, index=0, open_index=0) #[0, 1])  # indent=10, color='black', index=2, open_index=[0, 1])
+                main_menu_selected_item = sac.menu([sac.MenuItem('Hjem'), sac.MenuItem('Dataudtræk')], color='dark')
+                if main_menu_selected_item == 'Hjem':
+                    selected_menu_item = sac.tree(generate_menu_items(), color='dark', align='start', icon=None, show_line=False, checkbox=False, checkbox_strict=True, index=0, open_index=0) #[0, 1])  # indent=10, color='black', index=2, open_index=[0, 1])
         if not is_admin and DEPLOYED_IN_TEST:
             st.warning("Du er i testmiljøet - her er linket til drift: https://velfaerdsteknologi.data.randers.dk/")
         elif show_usage_stats:
@@ -201,98 +205,381 @@ else:
                 st.altair_chart(chart_unique, use_container_width=True)
 
         else:
-            if not isinstance(selected_menu_item, str):
-                if 'selected_menu_item' in st.session_state:
-                    selected_menu_item = st.session_state['selected_menu_item']
-                else:
-                    selected_menu_item = 'Sundhed kultur og Omsorg'
-            else:
-                st.session_state['selected_menu_item'] = selected_menu_item
+            if main_menu_selected_item == 'Dataudtræk':
+                with top_container.empty():
+                    top_columns = st.columns([1, 1, 1])
+                    with top_columns[0]:
+                        st.markdown(f'<font size="6"> Dataudtræk', unsafe_allow_html=True)
+                    with top_columns[1]:
+                        with st.container(border=True):
+                            st.write('Fra')
+                            st.session_state.first_week = week_selector(get_week_before_last(), '2023-18', key='start', week_to_select=st.session_state.first_week)
+                    with top_columns[2]:
+                        with st.container(border=True):
+                            st.write('Til')
+                            st.session_state.last_week = week_selector(get_last_week(), '2023-18', key='end', week_to_select=st.session_state.last_week)
 
-            ou_to_select = None if any(x in selected_menu_item for x in ['Omsorg', 'Kommune']) else selected_menu_item
+                all_ous = [ou.nexus_name for ou in session.query(OU).filter(OU.children == None).all()]
+                all_ous = sorted(list(set(ou for ou in all_ous if "intet distrikt" not in ou.lower() and "randers kommune" not in ou.lower())))
 
-            with top_container.empty():
-                top_columns = st.columns([1, 1, 1])
-                with top_columns[2]:
-                    # with st.expander('Vælg uge', expanded=False):
-                    with st.container(border=True):
-                        st.session_state.selected_week = week_selector(get_last_week(), '2023-18', week_to_select=st.session_state.selected_week)
-                with top_columns[0]:
-                    st.markdown(f'<font size="6"> {selected_menu_item} - Uge {st.session_state.selected_week.split("-")[1].lstrip("0")}', unsafe_allow_html=True)
+                query = (
+                    select(Service.name, func.sum(Service.visits).label("total_visits"))
+                    .where(Service.type.in_(["Skærmbesøg", "Telefonopkald"]))
+                    .group_by(Service.name)
+                    .order_by(desc("total_visits"))
+                    .limit(100)
+                )
 
-            content_tabs = sac.tabs([sac.TabsItem('Overblik'), sac.TabsItem('Medarbejdere'), sac.TabsItem('Ydelser'), sac.TabsItem('Historik')], color='dark', size='md', position='top', align='start', use_container_width=True)
+                results = session.execute(query).all()
+                service_name_options = ["Alle"] + [res.name for res in results]
 
-            with st.spinner('Henter data...'):
-                keywords_to_exclude = ['sygeplejegrupper', 'borgerteam', 'natcenter']
-                if 'hjemmepleje' in selected_menu_item.lower():
-                    keywords_to_exclude.append('plejecenter')
-                elif 'plejecentre' in selected_menu_item.lower():
-                    keywords_to_exclude.append('distrikt')
+                selected_ous = []
+                selected_data_types = []
+                selected_service_types = []
 
-                if content_tabs == 'Overblik':  
-                    # start old way (correct way) #
-                    # children = get_children(selected_menu_item)
+                ou_col, data_type_col, service_type_col, file_generation_col = st.columns(4)
+                with ou_col:
+                    st.markdown("#### Enheder")
 
-                    # if children:
-                    #     children_of_children = [item for child in children for item in get_children(child)]
+                    if st.button("Vælg alle", key="select_all_ous"):
+                        for ou in all_ous:
+                            st.session_state[f"data_checkbox_{ou}"] = True
 
-                    #     children_data = []
-                    #     if children_of_children:
-                    #         for child in children_of_children:
-                    #             children_data.append({child: get_overview_data(st.session_state.selected_week, child)})
-                    #     else:
-                    #         for child in children:
-                    #             children_data.append({child: get_overview_data(st.session_state.selected_week, child)})
+                    if st.button("Fravælg alle", key="deselect_all_ous"):
+                        for ou in all_ous:
+                            st.session_state[f"data_checkbox_{ou}"] = False
+                    for ou in all_ous:
+                        if st.checkbox(ou, key=f"data_checkbox_{ou}"):
+                            selected_ous.append(ou)
 
-                    # data_this_week = get_overview_data(st.session_state.selected_week, ou_to_select)
-                    # data_week_before_last = get_overview_data(get_previous_week(st.session_state.selected_week), ou_to_select)
-                    # end old way #
+                with data_type_col:
+                    st.markdown("#### Opkaldsdata")
+                    data_types = ["Anvendelsesgrad", "Opkald besvarede", "Opkald ubesvarede", "Omlægningsgrad", "Opkald gennemsnitlig varighed", "Borgere aktive"]
 
-                    # start new way (hacky) #
+                    if st.button("Vælg alle", key="select_all_data_types"):
+                        for data_type in data_types:
+                            st.session_state[f"data_type_checkbox_{data_type}"] = True
 
-                    if 'kultur og omsorg' in selected_menu_item.lower():
-                        children = get_children(selected_menu_item)
-                    else:
-                        if any(kw in selected_menu_item.lower() for kw in ['hjemmepleje', 'plejecentre']):
-                            if 'område' in selected_menu_item.lower():
-                                children = get_children(' '.join(selected_menu_item.split(' ')[1:]), keywords_to_exclude)
+                    if st.button("Fravælg alle", key="deselect_all_data_types"):
+                        for data_type in data_types:
+                            st.session_state[f"data_type_checkbox_{data_type}"] = False
+
+                    for data_type in data_types:
+                        if st.checkbox(data_type, key=f"data_type_checkbox_{data_type}"):
+                            selected_data_types.append(data_type)
+
+                with service_type_col:
+                    st.markdown("#### Ydelsesdata")
+                    service_types = ["Besøg", "Skærmbesøg", "Telefonopkald"]
+
+                    service_type = st.radio("Vælg ydelsestype", options=service_types, key="service_type_radio")
+
+                    if service_type:
+                        service_type_dropdown = st.selectbox(
+                            "Vælg specifik ydelse",
+                            options=service_name_options,
+                            key="service_type_dropdown"
+                            )
+
+                    if 'service_type_list' not in st.session_state:
+                        st.session_state["service_type_list"] = []
+
+                    if st.button("Tilføj", key=f"add_service_{service_type}"):
+                        if service_type_dropdown:
+                            if {'type': service_type, 'service': service_type_dropdown} not in st.session_state["service_type_list"]:
+                                st.session_state["service_type_list"].append({'type': service_type, 'service': service_type_dropdown})
+
+                    if st.session_state["service_type_list"]:
+                        if st.button("Fjern alle", key="remove_all_services"):
+                            st.session_state["service_type_list"] = []
+
+                    for index, service in enumerate(st.session_state["service_type_list"]):
+                        col1, col2 = st.columns([4, 1])
+                        with col1:
+                            st.write(f"{service['type']} {service['service']}")
+                        with col2:
+                            if st.button("Fjern", key=f"remove_service_{index}"):
+                                st.session_state["service_type_list"].pop(index)
+                                st.experimental_rerun()
+
+                with file_generation_col:
+                    st.markdown("#### Udtræksfil")
+                    if st.button("Generer fil"):
+                        with st.spinner("Genererer fil..."):
+                            if selected_ous and (selected_data_types or st.session_state["service_type_list"]):
+                                all_data = {}
+                                all_service_data = {}
+                                for ou in selected_ous:
+                                    all_data[ou] = []
+                                    all_service_data[ou] = []
+                                    weeks = get_weeks(st.session_state.first_week, st.session_state.last_week)
+
+                                    if selected_data_types:                                        
+                                        for week in weeks:
+                                            data = get_overview_data(week, ou)
+                                            if any('varighed' in data_type for data_type in selected_data_types):
+                                                for key, value in data.items():
+                                                    if key == "Opkald gennemsnitlig varighed" and isinstance(value, timedelta):
+                                                        minutes, seconds = divmod(value.total_seconds(), 60)
+                                                        data[key] = f"{int(minutes)} min {int(seconds)} sek"
+                                            all_data[ou].append({week: data})
+
+                                    if st.session_state["service_type_list"]:
+                                        for week in weeks:
+                                            service_data = get_filtered_service_data(week, ou)
+                                            all_service_data[ou].append({week: service_data})
+
+                                    # Create an in-memory output file for the Excel file
+                                    output = BytesIO()
+                                    workbook = xlsxwriter.Workbook(output, {'in_memory': True})
+
+                                    for data_type in selected_data_types:
+                                        worksheet = workbook.add_worksheet(data_type[:31])
+                                        worksheet.write(0, 0, "Uge")
+                                        for col, ou in enumerate(selected_ous, start=1):
+                                            worksheet.write(0, col, ou)
+                                            worksheet.set_column(col, col, len(ou) - 3)
+
+                                        for row, week in enumerate(weeks, start=1):
+                                            worksheet.write(row, 0, week)
+                                            for col, ou in enumerate(selected_ous, start=1):
+                                                data = all_data.get(ou, [])
+                                                week_data = next((item.get(week, {}) for item in data if week in item), {})
+                                                value = week_data.get(data_type, 'n/a')
+                                                worksheet.write(row, col, value)
+
+                                    for service in st.session_state["service_type_list"]:
+                                        worksheet = workbook.add_worksheet(f"{service['type']} {service['service']}"[:31])
+                                        worksheet.write(0, 0, "Uge")
+                                        for col, ou in enumerate(selected_ous, start=1):
+                                            worksheet.write(0, col, ou)
+                                            worksheet.set_column(col, col, len(ou) - 3)
+
+                                        for row, week in enumerate(weeks, start=1):
+                                            worksheet.write(row, 0, week)
+                                            for col, ou in enumerate(selected_ous, start=1):
+                                                service_data = all_service_data.get(ou, [])
+                                                week_data = next((data.get(week, {}) for data in service_data if week in data), {})
+                                                if service['service'] == "Alle":
+                                                    value = sum(item['visits'] for item in week_data.get(service['type'], []))
+                                                else:
+                                                    value = next((item['visits'] for item in week_data.get(service['type'], []) if item['name'] == service['service']), 'n/a')
+                                                worksheet.write(row, col, value)
+
+                                    workbook.close()
+                                    output.seek(0)
+
+                                # Provide the Excel file for download
+                                st.download_button(
+                                    label="Download Excel-fil",
+                                    data=output,
+                                    file_name="dataudtræk.xlsx",
+                                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                                    key="download_excel"
+                                )
                             else:
-                                children = get_children('Sundhed kultur og Omsorg')
-                        # children = get_children(selected_menu_item, ['sygeplejegrupper', 'borgerteam', 'plejecenter'])
-                        else:
-                            children = get_children(selected_menu_item, ['sygeplejegrupper', 'borgerteam', 'plejecenter'])
-                            # children = get_children(selected_menu_item)
+                                st.warning("Vælg venligst mindst én enhed og én datatype eller ydelse.")
 
-                    if children:
+            elif main_menu_selected_item == 'Hjem':
+                if not isinstance(selected_menu_item, str):
+                    if 'selected_menu_item' in st.session_state:
+                        selected_menu_item = st.session_state['selected_menu_item']
+                    else:
+                        selected_menu_item = 'Sundhed kultur og Omsorg'
+                else:
+                    st.session_state['selected_menu_item'] = selected_menu_item
+
+                ou_to_select = None if any(x in selected_menu_item for x in ['Omsorg', 'Kommune']) else selected_menu_item
+
+                with top_container.empty():
+                    top_columns = st.columns([1, 1, 1])
+                    with top_columns[2]:
+                        # with st.expander('Vælg uge', expanded=False):
+                        with st.container(border=True):
+                            st.session_state.selected_week = week_selector(get_last_week(), '2023-18', week_to_select=st.session_state.selected_week)
+                    with top_columns[0]:
+                        st.markdown(f'<font size="6"> {selected_menu_item} - Uge {st.session_state.selected_week.split("-")[1].lstrip("0")}', unsafe_allow_html=True)
+
+                content_tabs = sac.tabs([sac.TabsItem('Overblik'), sac.TabsItem('Medarbejdere'), sac.TabsItem('Ydelser'), sac.TabsItem('Historik')], color='dark', size='md', position='top', align='start', use_container_width=True)
+
+                with st.spinner('Henter data...'):
+                    keywords_to_exclude = ['sygeplejegrupper', 'borgerteam', 'natcenter']
+                    if 'hjemmepleje' in selected_menu_item.lower():
+                        keywords_to_exclude.append('plejecenter')
+                    elif 'plejecentre' in selected_menu_item.lower():
+                        keywords_to_exclude.append('distrikt')
+
+                    if content_tabs == 'Overblik':  
+                        # start old way (correct way) #
+                        # children = get_children(selected_menu_item)
+
+                        # if children:
+                        #     children_of_children = [item for child in children for item in get_children(child)]
+
+                        #     children_data = []
+                        #     if children_of_children:
+                        #         for child in children_of_children:
+                        #             children_data.append({child: get_overview_data(st.session_state.selected_week, child)})
+                        #     else:
+                        #         for child in children:
+                        #             children_data.append({child: get_overview_data(st.session_state.selected_week, child)})
+
+                        # data_this_week = get_overview_data(st.session_state.selected_week, ou_to_select)
+                        # data_week_before_last = get_overview_data(get_previous_week(st.session_state.selected_week), ou_to_select)
+                        # end old way #
+
+                        # start new way (hacky) #
+
                         if 'kultur og omsorg' in selected_menu_item.lower():
-                            children_of_children = [item for child in children for item in get_children(child)]
+                            children = get_children(selected_menu_item)
                         else:
                             if any(kw in selected_menu_item.lower() for kw in ['hjemmepleje', 'plejecentre']):
-                                children_of_children = [item for child in children for item in get_children(child, keywords_to_exclude)]
+                                if 'område' in selected_menu_item.lower():
+                                    children = get_children(' '.join(selected_menu_item.split(' ')[1:]), keywords_to_exclude)
+                                else:
+                                    children = get_children('Sundhed kultur og Omsorg')
+                            # children = get_children(selected_menu_item, ['sygeplejegrupper', 'borgerteam', 'plejecenter'])
                             else:
-                                children_of_children = [item for child in children for item in get_children(child, ['sygeplejegrupper', 'borgerteam'])]
+                                children = get_children(selected_menu_item, ['sygeplejegrupper', 'borgerteam', 'plejecenter'])
+                                # children = get_children(selected_menu_item)
 
-                        children_data = []
-                        if children_of_children:
-                            for child in children_of_children:
-                                children_data.append({child: get_filtered_overview_data(st.session_state.selected_week, child)})
+                        if children:
+                            if 'kultur og omsorg' in selected_menu_item.lower():
+                                children_of_children = [item for child in children for item in get_children(child)]
+                            else:
+                                if any(kw in selected_menu_item.lower() for kw in ['hjemmepleje', 'plejecentre']):
+                                    children_of_children = [item for child in children for item in get_children(child, keywords_to_exclude)]
+                                else:
+                                    children_of_children = [item for child in children for item in get_children(child, ['sygeplejegrupper', 'borgerteam'])]
+
+                            children_data = []
+                            if children_of_children:
+                                for child in children_of_children:
+                                    children_data.append({child: get_filtered_overview_data(st.session_state.selected_week, child)})
+                            else:
+                                for child in children:
+                                    children_data.append({child: get_filtered_overview_data(st.session_state.selected_week, child)})
+
+                        if any(kw in selected_menu_item.lower() for kw in ['hjemmepleje', 'plejecentre']):
+                            data_this_week = get_filtered_overview_data(st.session_state.selected_week, ' '.join(ou_to_select.split(' ')[1:]), keywords_exclude=keywords_to_exclude)
+                            data_week_before_last = get_filtered_overview_data(get_previous_week(st.session_state.selected_week), ' '.join(ou_to_select.split(' ')[1:]), keywords_exclude=keywords_to_exclude)
                         else:
-                            for child in children:
-                                children_data.append({child: get_filtered_overview_data(st.session_state.selected_week, child)})
+                            data_this_week = get_filtered_overview_data(st.session_state.selected_week, ou_to_select)
+                            data_week_before_last = get_filtered_overview_data(get_previous_week(st.session_state.selected_week), ou_to_select)
+                        # end new way #
 
-                    if any(kw in selected_menu_item.lower() for kw in ['hjemmepleje', 'plejecentre']):
-                        data_this_week = get_filtered_overview_data(st.session_state.selected_week, ' '.join(ou_to_select.split(' ')[1:]), keywords_exclude=keywords_to_exclude)
-                        data_week_before_last = get_filtered_overview_data(get_previous_week(st.session_state.selected_week), ' '.join(ou_to_select.split(' ')[1:]), keywords_exclude=keywords_to_exclude)
-                    else:
-                        data_this_week = get_filtered_overview_data(st.session_state.selected_week, ou_to_select)
-                        data_week_before_last = get_filtered_overview_data(get_previous_week(st.session_state.selected_week), ou_to_select)
-                    # end new way #
+                        content_top_container = st.container()
+                        content_bottom_container = st.container()
+                        with content_top_container:
+                            if data_this_week:
+                                nc = st.columns([1, 1, 1])
+                                for key, value in data_this_week.items():
+                                    old_value = data_week_before_last[key]
+                                    if type(value) is timedelta:
+                                        if value.total_seconds() < old_value.total_seconds():
+                                            delta_value = '-' + str(timedelta(seconds=round((old_value.total_seconds() - value.total_seconds()))))
+                                        else:
+                                            delta_value = str(timedelta(seconds=round((value.total_seconds() - old_value.total_seconds()))))
+                                        value = str(timedelta(seconds=round(value.total_seconds())))
+                                    elif type(value) is str:
+                                        delta_value = '-'
+                                    elif type(value) is list:
+                                        pass
+                                    else:
+                                        if type(old_value) not in [int, float]:
+                                            old_value = 0
+                                        delta_value = data_this_week[key] - old_value
 
-                    content_top_container = st.container()
-                    content_bottom_container = st.container()
-                    with content_top_container:
+                                    if 'Omlægningsgrad' in key:
+                                        if type(value) is str:
+                                            delta_value = None
+                                        else:
+                                            value = f"{value * 100:.2f}%"
+                                            delta_value = f"{delta_value * 100:.2f}%"
+
+                                    if 'Anvendelsesgrad' in key:
+                                        delta_value = round(value - old_value, 2)
+                                        value = round(value, 2)
+
+                                    if 'Måltal' in key:
+                                        if type(value) is str:
+                                            delta_value = None
+                                        else:
+                                            delta_value = round(value - old_value, 2)
+                                            value = round(value, 2)
+
+                                    if any(x in key for x in ['ubesvarede', 'varighed']):
+                                        delta_color = 'inverse'
+                                    else:
+                                        delta_color = 'normal'
+
+                                    if type(value) is list:
+                                        pass
+                                    elif 'Opkald' in key:
+                                        with nc[0]:
+                                            if 'gennemsnitlig' in key:
+                                                st.metric(label=key, value=value)
+                                            else:
+                                                st.metric(label=key, value=value, delta=delta_value, delta_color=delta_color)
+                                    elif 'Borgere' in key:
+                                        with nc[1]:
+                                            st.metric(label=key, value=value, delta=delta_value, delta_color=delta_color)
+                                    else:
+                                        with nc[2]:
+                                            st.metric(label=key, value=value, delta=delta_value, delta_color=delta_color)
+
+                                if children:
+                                    with content_bottom_container:
+                                        nc_bottom = st.columns([1, 1])
+                                        with nc_bottom[0]:
+                                            child_names = [list(child.keys())[0] for child in children_data if 'intet' not in list(child.keys())[0].lower()]
+                                            conversion_rates = [list(child.values())[0]['Omlægningsgrad'] for child in children_data if 'intet' not in list(child.keys())[0].lower()]  # Convert to percentages
+
+                                            if all(isinstance(rate, str) for rate in conversion_rates):
+                                                pass
+                                            else:
+                                                conversion_rates = [0 if isinstance(rate, str) else rate for rate in conversion_rates]
+                                                chart = create_conversion_rate_bar_chart({'Enhed': child_names}, {'Omlægningsgrad': conversion_rates}, x_is_ou=True)
+                                                st.altair_chart(chart, use_container_width=True)
+
+                                        with nc_bottom[1]:
+                                            child_names = [list(child.keys())[0] for child in children_data if 'intet' not in list(child.keys())[0].lower()]
+                                            answered_calls = [list(child.values())[0]['Opkald besvarede'] for child in children_data if 'intet' not in list(child.keys())[0].lower()]
+
+                                            chart = create_calls_bar_chart({'Enhed': child_names}, {'Opkald besvarede': answered_calls}, x_is_ou=True)
+                                            st.altair_chart(chart, use_container_width=True)
+
+                    elif content_tabs == 'Medarbejdere':
+                        children = get_children(selected_menu_item)
+
+                        if children:
+                            children_of_children = [item for child in children for item in get_children(child)]
+
+                            children_data = []
+                            if children_of_children:
+                                for child in children_of_children:
+                                    children_data.append({child: get_overview_data(st.session_state.selected_week, child)})
+                            else:
+                                for child in children:
+                                    children_data.append({child: get_overview_data(st.session_state.selected_week, child)})
+
+                        # start old way (correct way) #
+                        # data_this_week = get_employee_data(st.session_state.selected_week, ou_to_select)
+                        # data_week_before_last = get_employee_data(get_previous_week(st.session_state.selected_week), ou_to_select)
+                        # end old way #
+
+                        # start new way (hacky) #
+                        if any(kw in selected_menu_item.lower() for kw in ['hjemmepleje', 'plejecentre']):
+                            data_this_week = get_filtered_employee_data(st.session_state.selected_week, ' '.join(ou_to_select.split(' ')[1:]), keywords_exclude=keywords_to_exclude)
+                            data_week_before_last = get_filtered_employee_data(get_previous_week(st.session_state.selected_week), ' '.join(ou_to_select.split(' ')[1:]), keywords_exclude=keywords_to_exclude)
+                        else:
+                            data_this_week = get_filtered_employee_data(st.session_state.selected_week, ou_to_select)
+                            data_week_before_last = get_filtered_employee_data(get_previous_week(st.session_state.selected_week), ou_to_select)
+                        # end new way #
+
                         if data_this_week:
                             nc = st.columns([1, 1, 1])
+
                             for key, value in data_this_week.items():
                                 old_value = data_week_before_last[key]
                                 if type(value) is timedelta:
@@ -301,249 +588,152 @@ else:
                                     else:
                                         delta_value = str(timedelta(seconds=round((value.total_seconds() - old_value.total_seconds()))))
                                     value = str(timedelta(seconds=round(value.total_seconds())))
+                                elif type(value) is float:
+                                    delta_value = round(value - old_value, 2)
+                                    value = round(value, 2)
                                 elif type(value) is str:
                                     delta_value = '-'
                                 elif type(value) is list:
                                     pass
                                 else:
-                                    if type(old_value) not in [int, float]:
-                                        old_value = 0
-                                    delta_value = data_this_week[key] - old_value
+                                    delta_value = data_this_week[key] - data_week_before_last[key] 
 
-                                if 'Omlægningsgrad' in key:
-                                    if type(value) is str:
-                                        delta_value = None
-                                    else:
-                                        value = f"{value * 100:.2f}%"
-                                        delta_value = f"{delta_value * 100:.2f}%"
+                                delta_color = 'off'
 
-                                if 'Anvendelsesgrad' in key:
-                                    delta_value = round(value - old_value, 2)
-                                    value = round(value, 2)
-
-                                if any(x in key for x in ['ubesvarede', 'varighed']):
-                                    delta_color = 'inverse'
-                                else:
-                                    delta_color = 'normal'
-
-                                if type(value) is list:
-                                    pass
-                                elif 'Opkald' in key:
+                                if 'Opkald besvarede' == key:
                                     with nc[0]:
-                                        if 'gennemsnitlig' in key:
-                                            st.metric(label=key, value=value)
-                                        else:
-                                            st.metric(label=key, value=value, delta=delta_value, delta_color=delta_color)
-                                elif 'Borgere' in key:
+                                        st.metric(label=key, value=value, delta=delta_value, delta_color=delta_color)
+                                elif 'Opkald ubesvarede' == key:
                                     with nc[1]:
                                         st.metric(label=key, value=value, delta=delta_value, delta_color=delta_color)
                                 else:
                                     with nc[2]:
                                         st.metric(label=key, value=value, delta=delta_value, delta_color=delta_color)
 
-                            if children:
-                                with content_bottom_container:
-                                    nc_bottom = st.columns([1, 1])
-                                    with nc_bottom[0]:
-                                        child_names = [list(child.keys())[0] for child in children_data if 'intet' not in list(child.keys())[0].lower()]
-                                        conversion_rates = [list(child.values())[0]['Omlægningsgrad'] for child in children_data if 'intet' not in list(child.keys())[0].lower()]  # Convert to percentages
-
-                                        if all(isinstance(rate, str) for rate in conversion_rates):
-                                            pass
-                                        else:
-                                            conversion_rates = [0 if isinstance(rate, str) else rate for rate in conversion_rates]
-                                            chart = create_conversion_rate_bar_chart({'Enhed': child_names}, {'Omlægningsgrad': conversion_rates}, x_is_ou=True)
-                                            st.altair_chart(chart, use_container_width=True)
-
-                                    with nc_bottom[1]:
-                                        child_names = [list(child.keys())[0] for child in children_data if 'intet' not in list(child.keys())[0].lower()]
-                                        answered_calls = [list(child.values())[0]['Opkald besvarede'] for child in children_data if 'intet' not in list(child.keys())[0].lower()]
-
-                                        chart = create_calls_bar_chart({'Enhed': child_names}, {'Opkald besvarede': answered_calls}, x_is_ou=True)
-                                        st.altair_chart(chart, use_container_width=True)
-
-                elif content_tabs == 'Medarbejdere':
-                    children = get_children(selected_menu_item)
-
-                    if children:
-                        children_of_children = [item for child in children for item in get_children(child)]
-
-                        children_data = []
-                        if children_of_children:
-                            for child in children_of_children:
-                                children_data.append({child: get_overview_data(st.session_state.selected_week, child)})
-                        else:
-                            for child in children:
-                                children_data.append({child: get_overview_data(st.session_state.selected_week, child)})
-
-                    # start old way (correct way) #
-                    # data_this_week = get_employee_data(st.session_state.selected_week, ou_to_select)
-                    # data_week_before_last = get_employee_data(get_previous_week(st.session_state.selected_week), ou_to_select)
-                    # end old way #
-
-                    # start new way (hacky) #
-                    if any(kw in selected_menu_item.lower() for kw in ['hjemmepleje', 'plejecentre']):
-                        data_this_week = get_filtered_employee_data(st.session_state.selected_week, ' '.join(ou_to_select.split(' ')[1:]), keywords_exclude=keywords_to_exclude)
-                        data_week_before_last = get_filtered_employee_data(get_previous_week(st.session_state.selected_week), ' '.join(ou_to_select.split(' ')[1:]), keywords_exclude=keywords_to_exclude)
-                    else:
-                        data_this_week = get_filtered_employee_data(st.session_state.selected_week, ou_to_select)
-                        data_week_before_last = get_filtered_employee_data(get_previous_week(st.session_state.selected_week), ou_to_select)
-                    # end new way #
-
-                    if data_this_week:
-                        nc = st.columns([1, 1, 1])
-
-                        for key, value in data_this_week.items():
-                            old_value = data_week_before_last[key]
-                            if type(value) is timedelta:
-                                if value.total_seconds() < old_value.total_seconds():
-                                    delta_value = '-' + str(timedelta(seconds=round((old_value.total_seconds() - value.total_seconds()))))
-                                else:
-                                    delta_value = str(timedelta(seconds=round((value.total_seconds() - old_value.total_seconds()))))
-                                value = str(timedelta(seconds=round(value.total_seconds())))
-                            elif type(value) is float:
-                                delta_value = round(value - old_value, 2)
-                                value = round(value, 2)
-                            elif type(value) is str:
-                                delta_value = '-'
-                            elif type(value) is list:
-                                pass
-                            else:
-                                delta_value = data_this_week[key] - data_week_before_last[key] 
-
-                            delta_color = 'off'
-
-                            if 'Opkald besvarede' == key:
-                                with nc[0]:
-                                    st.metric(label=key, value=value, delta=delta_value, delta_color=delta_color)
-                            elif 'Opkald ubesvarede' == key:
-                                with nc[1]:
-                                    st.metric(label=key, value=value, delta=delta_value, delta_color=delta_color)
-                            else:
-                                with nc[2]:
-                                    st.metric(label=key, value=value, delta=delta_value, delta_color=delta_color)
-
-                elif content_tabs == 'Ydelser':
-                    # start old way (correct way) #
-                    # data = get_service_data(st.session_state.selected_week, ou_to_select)
-                    # end old way #
-
-                    # start new way (hacky) #
-                    if any(kw in selected_menu_item.lower() for kw in ['hjemmepleje', 'plejecentre']):
-                        data = get_filtered_service_data(st.session_state.selected_week, ' '.join(ou_to_select.split(' ')[1:]), keywords_exclude=keywords_to_exclude)
-                    else:
-                        data = get_filtered_service_data(st.session_state.selected_week, ou_to_select)
-                    # end new way #
-
-                    if data:
-                        cols = st.columns(len(data))
-                        # Create a unique color map for all names
-                        unique_names = set()
-                        for key, value in data.items():
-                            if isinstance(value, list) and all(isinstance(item, dict) for item in value):
-                                # Sort items by visits and take the top  in reverse order
-                                top_items = sorted(value, key=lambda x: x['visits'], reverse=True)[:8]
-                                unique_names.update(item['name'] for item in top_items)
-                        unique_names.add('Andet')
-                        unique_names = sorted(unique_names)
-
-                        color_palette = plt.get_cmap('tab20b').colors
-                        color_map = {name: '#{:02x}{:02x}{:02x}'.format(int(color[0]*255), int(color[1]*255), int(color[2]*255)) for name, color in zip(unique_names, color_palette)}
-                        index = 0
-
-                        for key, value in data.items():
-                            if isinstance(value, list) and all(isinstance(item, dict) for item in value):
-                                names = [item['name'] for item in value]
-                                visits = [item['visits'] for item in value]
-
-                                if names and visits:
-                                    # Calculate percentage for all items
-                                    total_visits = sum(visits)
-                                    percentages = [(visit / total_visits) * 100 for visit in visits]
-
-                                    # Filter out items with less than 4% and limit to a maximum of 8 items
-                                    filtered_data = [(name, visit) for name, visit, percentage in zip(names, visits, percentages) if percentage >= 4]
-                                    filtered_data = sorted(filtered_data, key=lambda x: x[1], reverse=True)[:8]
-                                    other_data = [(name, percentage, amount) for name, amount, percentage in zip(names, visits, percentages) if percentage < 4 and amount > 0]
-                                    other_data = [(name, percentage, amount) for name, percentage, amount in sorted(other_data, key=lambda x: x[1], reverse=True)[:8]]
-
-                                    filtered_names, filtered_visits = zip(*filtered_data) if filtered_data else ([], [])
-
-                                    other_visits = total_visits - sum(filtered_visits)
-
-                                    if other_visits > 0:
-                                        if len(other_data) == 1:
-                                            filtered_data.append((other_data[0][0], other_visits))
-                                        else:
-                                            filtered_data.append(('Andet', other_visits))
-
-                                    filtered_names, filtered_visits = zip(*filtered_data) if filtered_data else ([], [])
-
-                                    with cols[index]:
-                                        chart_name = f'Planlagte ydelser ({key.lower()})'
-                                        pie_chart, total_amount = create_service_pie_chart(filtered_names, filtered_visits, chart_name, color_map)
-                                        st.altair_chart(pie_chart, use_container_width=True)
-                                        st.markdown(f'<b>{chart_name} i alt: {total_amount}</b>', unsafe_allow_html=True)
-                                        if 'Andet' in filtered_names and other_data:
-                                            if len(other_data) > 10:
-                                                st.markdown('<font size="4"> Top 10 i andet:', unsafe_allow_html=True)
-                                                del other_data[-1]
-                                            else:
-                                                st.markdown('<font size="4"> Andet:', unsafe_allow_html=True)
-                                            other_df = pd.DataFrame(other_data, columns=['Ydelse', 'Procent', 'Antal'])
-                                            other_df['Procent'] = other_df['Procent'].apply(lambda x: f"{x:.1f}%")
-                                            st.markdown(other_df.to_markdown(index=False))
-                                        index += 1
-                elif content_tabs == 'Historik':
-                    st.markdown(f'<font size="5"> {content_tabs}', unsafe_allow_html=True)
-                    with top_container.empty():
-                        top_columns = st.columns([1, 1, 1])
-                        with top_columns[0]:
-                            st.markdown(f'<font size="6"> {selected_menu_item}', unsafe_allow_html=True)
-                        with top_columns[1]:
-                            with st.container(border=True):
-                                st.write('Fra')
-                                st.session_state.first_week = week_selector(get_week_before_last(), '2023-18', key='start', week_to_select=st.session_state.first_week)
-                        with top_columns[2]:
-                            with st.container(border=True):
-                                st.write('Til')
-                                st.session_state.last_week = week_selector(get_last_week(), '2023-18', key='end', week_to_select=st.session_state.last_week)
-
-                    weeks = get_weeks(st.session_state.first_week, st.session_state.last_week)
-                    data = []
-                    for week in weeks:
+                    elif content_tabs == 'Ydelser':
                         # start old way (correct way) #
-                        # week_data = get_overview_data(week, ou_to_select)
+                        # data = get_service_data(st.session_state.selected_week, ou_to_select)
                         # end old way #
 
                         # start new way (hacky) #
                         if any(kw in selected_menu_item.lower() for kw in ['hjemmepleje', 'plejecentre']):
-                            week_data = get_filtered_overview_data(week, ' '.join(ou_to_select.split(' ')[1:]), keywords_exclude=keywords_to_exclude)
+                            data = get_filtered_service_data(st.session_state.selected_week, ' '.join(ou_to_select.split(' ')[1:]), keywords_exclude=keywords_to_exclude)
                         else:
-                            week_data = get_filtered_overview_data(week, ou_to_select)
+                            data = get_filtered_service_data(st.session_state.selected_week, ou_to_select)
                         # end new way #
-                        
-                        if week_data:
-                            week_data['Uge'] = week
-                            data.append(week_data)
 
-                    combined_data = {}
-                    for d in data:
-                        for key, value in d.items():
-                            if key not in combined_data:
-                                combined_data[key] = []
-                            combined_data[key].append(value)
+                        if data:
+                            cols = st.columns(len(data))
+                            # Create a unique color map for all names
+                            unique_names = set()
+                            for key, value in data.items():
+                                if isinstance(value, list) and all(isinstance(item, dict) for item in value):
+                                    # Sort items by visits and take the top  in reverse order
+                                    top_items = sorted(value, key=lambda x: x['visits'], reverse=True)[:8]
+                                    unique_names.update(item['name'] for item in top_items)
+                            unique_names.add('Andet')
+                            unique_names = sorted(unique_names)
 
-                    graph_tabs = sac.tabs([sac.TabsItem(item) for item in combined_data.keys() if 'inaktiv' not in item and item != 'Uge'], color='dark', size='sm', position='top', align='start', use_container_width=True)
-                    chart = None
-                    if graph_tabs == 'Anvendelsesgrad':
-                        chart = create_use_level_bar_chart({'Uge': combined_data['Uge']}, {graph_tabs: combined_data[graph_tabs]})
-                    elif graph_tabs == 'Omlægningsgrad':
-                        data = [0 if isinstance(value, str) else value for value in combined_data[graph_tabs]]
-                        chart = create_conversion_rate_bar_chart({'Uge': combined_data['Uge']}, {graph_tabs: data})
-                    elif 'varighed' in graph_tabs:
-                        chart = create_duration_bar_chart({'Uge': combined_data['Uge']}, {graph_tabs: combined_data[graph_tabs]})
-                    else:
-                        chart = create_calls_bar_chart({'Uge': combined_data['Uge']}, {graph_tabs: combined_data[graph_tabs]})
+                            color_palette = plt.get_cmap('tab20b').colors
+                            color_map = {name: '#{:02x}{:02x}{:02x}'.format(int(color[0]*255), int(color[1]*255), int(color[2]*255)) for name, color in zip(unique_names, color_palette)}
+                            index = 0
 
-                    st.altair_chart(chart, use_container_width=True)
+                            for key, value in data.items():
+                                if isinstance(value, list) and all(isinstance(item, dict) for item in value):
+                                    names = [item['name'] for item in value]
+                                    visits = [item['visits'] for item in value]
+
+                                    if names and visits:
+                                        # Calculate percentage for all items
+                                        total_visits = sum(visits)
+                                        percentages = [(visit / total_visits) * 100 for visit in visits]
+
+                                        # Filter out items with less than 4% and limit to a maximum of 8 items
+                                        filtered_data = [(name, visit) for name, visit, percentage in zip(names, visits, percentages) if percentage >= 4]
+                                        filtered_data = sorted(filtered_data, key=lambda x: x[1], reverse=True)[:8]
+                                        other_data = [(name, percentage, amount) for name, amount, percentage in zip(names, visits, percentages) if percentage < 4 and amount > 0]
+                                        other_data = [(name, percentage, amount) for name, percentage, amount in sorted(other_data, key=lambda x: x[1], reverse=True)[:8]]
+
+                                        filtered_names, filtered_visits = zip(*filtered_data) if filtered_data else ([], [])
+
+                                        other_visits = total_visits - sum(filtered_visits)
+
+                                        if other_visits > 0:
+                                            if len(other_data) == 1:
+                                                filtered_data.append((other_data[0][0], other_visits))
+                                            else:
+                                                filtered_data.append(('Andet', other_visits))
+
+                                        filtered_names, filtered_visits = zip(*filtered_data) if filtered_data else ([], [])
+
+                                        with cols[index]:
+                                            chart_name = f'Planlagte ydelser ({key.lower()})'
+                                            pie_chart, total_amount = create_service_pie_chart(filtered_names, filtered_visits, chart_name, color_map)
+                                            st.altair_chart(pie_chart, use_container_width=True)
+                                            st.markdown(f'<b>{chart_name} i alt: {total_amount}</b>', unsafe_allow_html=True)
+                                            if 'Andet' in filtered_names and other_data:
+                                                if len(other_data) > 10:
+                                                    st.markdown('<font size="4"> Top 10 i andet:', unsafe_allow_html=True)
+                                                    del other_data[-1]
+                                                else:
+                                                    st.markdown('<font size="4"> Andet:', unsafe_allow_html=True)
+                                                other_df = pd.DataFrame(other_data, columns=['Ydelse', 'Procent', 'Antal'])
+                                                other_df['Procent'] = other_df['Procent'].apply(lambda x: f"{x:.1f}%")
+                                                st.markdown(other_df.to_markdown(index=False))
+                                            index += 1
+                    elif content_tabs == 'Historik':
+                        st.markdown(f'<font size="5"> {content_tabs}', unsafe_allow_html=True)
+                        with top_container.empty():
+                            top_columns = st.columns([1, 1, 1])
+                            with top_columns[0]:
+                                st.markdown(f'<font size="6"> {selected_menu_item}', unsafe_allow_html=True)
+                            with top_columns[1]:
+                                with st.container(border=True):
+                                    st.write('Fra')
+                                    st.session_state.first_week = week_selector(get_week_before_last(), '2023-18', key='start', week_to_select=st.session_state.first_week)
+                            with top_columns[2]:
+                                with st.container(border=True):
+                                    st.write('Til')
+                                    st.session_state.last_week = week_selector(get_last_week(), '2023-18', key='end', week_to_select=st.session_state.last_week)
+
+                        weeks = get_weeks(st.session_state.first_week, st.session_state.last_week)
+                        data = []
+                        for week in weeks:
+                            # start old way (correct way) #
+                            # week_data = get_overview_data(week, ou_to_select)
+                            # end old way #
+
+                            # start new way (hacky) #
+                            if any(kw in selected_menu_item.lower() for kw in ['hjemmepleje', 'plejecentre']):
+                                week_data = get_filtered_overview_data(week, ' '.join(ou_to_select.split(' ')[1:]), keywords_exclude=keywords_to_exclude)
+                            else:
+                                week_data = get_filtered_overview_data(week, ou_to_select)
+                            # end new way #
+                            
+                            if week_data:
+                                week_data['Uge'] = week
+                                data.append(week_data)
+
+                        combined_data = {}
+                        for d in data:
+                            for key, value in d.items():
+                                if key not in combined_data:
+                                    combined_data[key] = []
+                                combined_data[key].append(value)
+
+                        graph_tabs = sac.tabs([sac.TabsItem(item) for item in combined_data.keys() if 'inaktiv' not in item and item != 'Uge'], color='dark', size='sm', position='top', align='start', use_container_width=True)
+                        chart = None
+                        if graph_tabs == 'Anvendelsesgrad':
+                            chart = create_use_level_bar_chart({'Uge': combined_data['Uge']}, {graph_tabs: combined_data[graph_tabs]})
+                        elif graph_tabs == 'Omlægningsgrad':
+                            data = [0 if isinstance(value, str) else value for value in combined_data[graph_tabs]]
+                            chart = create_conversion_rate_bar_chart({'Uge': combined_data['Uge']}, {graph_tabs: data})
+                        elif graph_tabs == 'Måltal':
+                            data = [0 if isinstance(value, str) else value for value in combined_data[graph_tabs]]
+                            chart = create_use_level_bar_chart({'Uge': combined_data['Uge']}, {graph_tabs: data})
+                        elif 'varighed' in graph_tabs:
+                            chart = create_duration_bar_chart({'Uge': combined_data['Uge']}, {graph_tabs: combined_data[graph_tabs]})
+                        else:
+                            chart = create_calls_bar_chart({'Uge': combined_data['Uge']}, {graph_tabs: combined_data[graph_tabs]})
+
+                        st.altair_chart(chart, use_container_width=True)
