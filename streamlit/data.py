@@ -219,7 +219,12 @@ def get_filtered_overview_data(week=None, ou=None, keywords_exclude=None):
         if not average_duration:
             average_duration = timedelta(seconds=0)
 
-        return {"Opkald besvarede": answered_calls, "Opkald ubesvarede": unanswered_calls, "Opkald gennemsnitlig varighed": average_duration, "Borgere aktive": active_residents, "Anvendelsesgrad": use_level, "Omlægningsgrad": conversion_rate}
+        target_number = '-'
+        if use_level and conversion_rate != '-':
+            if conversion_rate:
+                target_number = round(conversion_rate * 100, 2) * use_level
+
+        return {"Opkald besvarede": answered_calls, "Opkald ubesvarede": unanswered_calls, "Opkald gennemsnitlig varighed": average_duration, "Borgere aktive": active_residents, "Anvendelsesgrad": use_level, "Omlægningsgrad": conversion_rate, "Måltal": target_number}
 # end new way #
 
 
