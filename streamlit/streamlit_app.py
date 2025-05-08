@@ -472,6 +472,10 @@ else:
                         content_bottom_container = st.container()
                         with content_top_container:
                             if data_this_week:
+                                # TODO: remove this
+                                if not DEPLOYED_IN_TEST:
+                                    data_this_week = {k: v for k, v in data_this_week.items() if 'Måltal' not in k}
+                                    data_week_before_last = {k: v for k, v in data_week_before_last.items() if 'Måltal' not in k}
                                 nc = st.columns([1, 1, 1])
                                 for key, value in data_this_week.items():
                                     old_value = data_week_before_last[key]
