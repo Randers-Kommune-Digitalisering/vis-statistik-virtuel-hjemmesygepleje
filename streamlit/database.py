@@ -426,7 +426,14 @@ def update_call_db(days, start=None, end=None):
             if 'cpr' not in col:
                 df[col] = df[col].apply(lambda x: x[2:].strip() if x.startswith("1:") else x)
 
-            if 'duration' in col:
+            if col in ['caller', 'callee']:
+                df[col] = df[col].apply(
+                    lambda x: (
+                        x.split('displayName: ', 1)[1][:-1]
+                        if pd.notnull(x) and 'displayName: ' in x else x
+                    )
+                )
+            elif 'duration' in col:
                 df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0).astype('int64')
                 df[col] = pd.to_timedelta(df[col], unit='s')
                 df[col] = df[col].astype(str).apply(lambda x: x.split(' ')[-1])
