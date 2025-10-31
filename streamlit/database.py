@@ -405,33 +405,41 @@ def update_call_db(days, start=None, end=None):
 
     data = StringIO(call_log)
 
-    df = pd.read_csv(data, sep=';', dtype={"Caller's CPR": str, "Callee's CPR": str})
-
-    df = df.drop(columns=['CallerAlias', 'Media info'])    
+    df = pd.read_csv(data, sep=';', dtype=str)
 
     df.dropna(how='all', inplace=True)
     df.dropna(how='all', axis=1, inplace=True)
 
+    # rename columns
     df.columns = [re.sub(r"'s|\(|\)", "", c.lower().replace(' ', '_')) for c in list(df)]
 
     with Session(get_engine()) as sess:
         districts = sess.scalars(select(OU)).all()
 
-        for col, dt in df.dtypes.items():
-            if dt == object and 'cpr' not in col:
+        drop_cols = []
+
+        for col in df.columns:
+            if 'alias' in col or 'media' in col:
+                drop_cols.append(col)
+                continue
+
+            if 'cpr' not in col:
                 df[col] = df[col].apply(lambda x: x[2:].strip() if x.startswith("1:") else x)
 
-            if dt == 'int64' and 'seconds' in col:
+            if col in ['caller', 'callee']:
+                df[col] = df[col].apply(
+                    lambda x: (
+                        x.split('displayName: ', 1)[1][:-1]
+                        if pd.notnull(x) and 'displayName: ' in x else x
+                    )
+                )
+            elif 'duration' in col:
+                df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0).astype('int64')
                 df[col] = pd.to_timedelta(df[col], unit='s')
                 df[col] = df[col].astype(str).apply(lambda x: x.split(' ')[-1])
                 df.rename({col: col.split('_')[0]}, axis=1, inplace=True)
             elif 'cpr' in col:
                 df[col] = df[col].fillna('0000000000')
-                # df[col.split('_')[0]] = df[col.split('_')[0]].astype(str) + ';' + df[col].astype(str)
-                # df.drop([col], axis=1, inplace=True)
-            # elif 'role' in col:
-            #     df[col] = df[col].map({'Employee': True, 'Resident': False})
-            #     df.rename({col: col.replace('role', 'employee')}, axis=1, inplace=True)
             elif 'ou' in col:
                 # Set ou_id based on vitacomm name and drop rows with unknown ou
                 df[col] = df[col].apply(lambda value: next((d.id for d in districts if d.vitacomm_name == value.strip()), None))
@@ -440,10 +448,10 @@ def update_call_db(days, start=None, end=None):
             elif 'id' in col:
                 df.rename({col: 'id'}, axis=1, inplace=True)
 
+        df.drop(columns=drop_cols, inplace=True)
         data = df.to_dict(orient='records')
         instances = [Call(**row) for row in data]
 
-        # add_or_ignore_multiple(instances)
         for instance in instances:
             try:
                 sess.merge(instance)
