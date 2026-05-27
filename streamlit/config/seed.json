@@ -12,7 +12,7 @@
       { "vitacomm_name": "Kollektivhuset/Hornbæk", "applikator_id": 13, "nexus_name": "Distrikt Kollektivhuset", "parent": "Område Vest"},
       { "vitacomm_name": "Kristrup/Vorup", "applikator_id": 9, "nexus_name": "Distrikt Kristrup-Vorup", "parent": "Område Syd"},
       { "vitacomm_name": "Langå", "applikator_id": 14, "nexus_name": "Distrikt Langå", "parent": "Område Vest"},
-      { "vitacomm_name": "Lindevænget", "applikator_id": 8, "nexus_name": "Distrikt Tørvebryggen", "parent": "Område Syd"},
+      { "vitacomm_name": "Tørvebryggen", "applikator_id": 8, "nexus_name": "Distrikt Tørvebryggen", "parent": "Område Syd"},
       { "vitacomm_name": "Midtbyen", "applikator_id": 10, "nexus_name": "Distrikt Midtbyen", "parent": "Område Syd"},
       { "vitacomm_name": "Møllevang", "applikator_id": 17, "nexus_name": "Distrikt Møllevang", "parent": "Område Nord"},
       { "vitacomm_name": "Paderup/Assentoft", "applikator_id": 7, "nexus_name": "Distrikt Paderup-Assentoft", "parent": "Område Syd"},
