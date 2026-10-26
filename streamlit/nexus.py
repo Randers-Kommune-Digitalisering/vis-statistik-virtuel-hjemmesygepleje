@@ -123,8 +123,29 @@ def read_bi_data():
                         df.dropna(how='all', inplace=True)
                         df.dropna(how='all', axis=1, inplace=True)
 
-                        df.rename(columns={df.columns[0]: 'ou_id'}, inplace=True)
-                        df.rename(columns={df.columns[1]: 'residents'}, inplace=True)
+                        df = df.iloc[:, [0, 1]].copy()
+                        df.columns = ['ou_id', 'residents']
+
+                        # Has changed name from 'Distrikt Lindevænget' to 'Distrikt Tørvebryggen'
+                        df['ou_id'] = df['ou_id'].apply(lambda value: 'Distrikt Tørvebryggen' if value == 'Distrikt Lindevænget' else value)
+
+                        # Set district id based on Nexus name and filter out disticts not in database
+                        df['ou_id'] = df['ou_id'].apply(lambda value: next((d.id for d in districts if d.nexus_name == value), None))
+                        df.dropna(subset=['ou_id'], inplace=True)
+
+                        df['week'] = week
+
+                        week_stats_df.append(df)
+
+                    if 'planlagt-skærm' in s:
+                        districts = sess.scalars(select(OU)).all()
+                        df = pd.read_excel(xls, s)
+
+                        df.dropna(how='all', inplace=True)
+                        df.dropna(how='all', axis=1, inplace=True)
+
+                        df = df.iloc[:, [0, 3]].copy()
+                        df.columns = ['ou_id', 'screen_residents_with_planned_visits']
 
                         # Has changed name from 'Distrikt Lindevænget' to 'Distrikt Tørvebryggen'
                         df['ou_id'] = df['ou_id'].apply(lambda value: 'Distrikt Tørvebryggen' if value == 'Distrikt Lindevænget' else value)
@@ -140,20 +161,30 @@ def read_bi_data():
                 # week_stats_df = ft.reduce(lambda left, right: pd.merge(left, right, on='ou_id'), week_stats_df)
                 # week_stats_df['week'] = week
                 if week_stats_df:
-                    week_stats_df = pd.concat(week_stats_df)
-
-                    week_stats = []
+                    week_stats_df = pd.concat(week_stats_df).groupby(['ou_id', 'week'], as_index=False).first()
 
                     for _, row in week_stats_df.iterrows():
-                        week_stats.append(WeeklyStat(**row))
+                        values = {
+                            column: value
+                            for column, value in row.items()
+                            if pd.notna(value)
+                        }
 
-                    for instance in week_stats:
-                        try:
-                            sess.merge(instance)
-                            sess.commit()
-                        except exc.IntegrityError:
-                            sess.rollback()
-                    # add_or_update_multiple(week_stats)
+                        existing = sess.scalar(
+                            select(WeeklyStat).where(
+                                WeeklyStat.ou_id == values['ou_id'],
+                                WeeklyStat.week == values['week'],
+                            )
+                        )
+
+                        if existing is None:
+                            sess.add(WeeklyStat(**values))
+                        else:
+                            for column, value in values.items():
+                                if column not in ('ou_id', 'week'):
+                                    setattr(existing, column, value)
+
+                    sess.commit()
 
                 if service_dfs:
                     service_df = pd.concat(service_dfs)

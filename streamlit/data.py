@@ -176,12 +176,14 @@ def get_filtered_overview_data(week=None, ou=None, keywords_exclude=None):
                 average_duration = session.query(Call).join(OU, Call.caller_ou_id == OU.id).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Resident', Call.caller_role == 'Employee')).filter(OU.id.in_(ou_children_ids)).with_entities(func.avg(Call.duration)).scalar()
                 active_residents = session.query(Call).join(OU, Call.caller_ou_id == OU.id).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Resident', Call.caller_role == 'Employee')).filter(OU.id.in_(ou_children_ids)).distinct(Call.callee_cpr).count()
                 all_residents = session.query(func.sum(WeeklyStat.residents)).join(OU, WeeklyStat.ou_id == OU.id).filter(WeeklyStat.week == week).filter(OU.id.in_(ou_children_ids)).scalar()
+                screen_planned_residents = session.query(func.sum(WeeklyStat.screen_residents_with_planned_visits)).join(OU, WeeklyStat.ou_id == OU.id).filter(WeeklyStat.week == week).filter(OU.id.in_(ou_children_ids)).scalar()
             else:
                 total_calls = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.callee_role == 'Resident', Call.caller_role == 'Employee')).filter(Call.caller_ou_id.in_(ou_ids)).count()
                 answered_calls = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Resident', Call.caller_role == 'Employee')).filter(Call.caller_ou_id.in_(ou_ids)).count()
                 average_duration = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Resident', Call.caller_role == 'Employee')).filter(Call.caller_ou_id.in_(ou_ids)).with_entities(func.avg(Call.duration)).scalar()
                 active_residents = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Resident', Call.caller_role == 'Employee')).filter(Call.caller_ou_id.in_(ou_ids)).distinct(Call.callee_cpr).count()
                 all_residents = session.query(func.sum(WeeklyStat.residents)).filter(WeeklyStat.week == week).filter(WeeklyStat.ou_id.in_(ou_ids)).scalar()
+                screen_planned_residents = session.query(func.sum(WeeklyStat.screen_residents_with_planned_visits)).filter(WeeklyStat.week == week).filter(WeeklyStat.ou_id.in_(ou_ids)).scalar()
         else:
             if keywords_exclude:
                 ous_to_exclude = session.query(OU).filter(or_(*[func.lower(OU.nexus_name).contains(keyword.lower()) for keyword in keywords_exclude])).all()
@@ -192,17 +194,22 @@ def get_filtered_overview_data(week=None, ou=None, keywords_exclude=None):
                 average_duration = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Resident', Call.caller_role == 'Employee', ~Call.caller_ou_id.in_(ou_ids_to_exclude))).with_entities(func.avg(Call.duration)).scalar()
                 active_residents = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Resident', Call.caller_role == 'Employee', ~Call.caller_ou_id.in_(ou_ids_to_exclude))).distinct(Call.callee_cpr).count()
                 all_residents = session.query(func.sum(WeeklyStat.residents)).filter(WeeklyStat.week == week, ~WeeklyStat.ou_id.in_(ou_ids_to_exclude)).scalar()
+                screen_planned_residents = session.query(func.sum(WeeklyStat.screen_residents_with_planned_visits)).filter(WeeklyStat.week == week, ~WeeklyStat.ou_id.in_(ou_ids_to_exclude)).scalar()
             else:
                 total_calls = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.callee_role == 'Resident', Call.caller_role == 'Employee')).count()
                 answered_calls = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Resident', Call.caller_role == 'Employee')).count()
                 average_duration = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Resident', Call.caller_role == 'Employee')).with_entities(func.avg(Call.duration)).scalar()
                 active_residents = session.query(Call).filter(and_(Call.start_time >= start, Call.start_time <= end, Call.duration > timedelta(seconds=0), Call.callee_role == 'Resident', Call.caller_role == 'Employee')).distinct(Call.callee_cpr).count()
                 all_residents = session.query(func.sum(WeeklyStat.residents)).filter(WeeklyStat.week == week).scalar()
+                screen_planned_residents = session.query(func.sum(WeeklyStat.screen_residents_with_planned_visits)).filter(WeeklyStat.week == week).scalar()
 
         unanswered_calls = total_calls - answered_calls
 
         if not all_residents:
             all_residents = '-'
+
+        if screen_planned_residents is None:
+            screen_planned_residents = '-'
 
         if all_residents == 0:
             conversion_rate = 0
@@ -224,7 +231,7 @@ def get_filtered_overview_data(week=None, ou=None, keywords_exclude=None):
             if conversion_rate:
                 target_number = round(conversion_rate * 100, 2) * use_level
 
-        return {"Opkald besvarede": answered_calls, "Opkald ubesvarede": unanswered_calls, "Opkald gennemsnitlig varighed": average_duration, "Borgere aktive": active_residents, "Anvendelsesgrad": use_level, "Omlægningsgrad": conversion_rate, "Måltal": target_number}
+        return {"Opkald besvarede": answered_calls, "Opkald ubesvarede": unanswered_calls, "Opkald gennemsnitlig varighed": average_duration, "Borgere aktive": active_residents, "Borgere (planlagt skærmbesøg)": screen_planned_residents, "Anvendelsesgrad": use_level, "Omlægningsgrad": conversion_rate, "Måltal": target_number}
 # end new way #
 
 
